@@ -30,9 +30,9 @@ export const CabinCatalog: React.FC<CabinCatalogProps> = ({
     onOpenBooking(cabinType, checkIn, checkOut);
   };
 
-  const handleContactBuyout = (channel: 'whatsapp' | 'telegram' | 'phone') => {
-    if (channel === 'whatsapp') {
-      window.open('https://api.whatsapp.com/send?phone=79184440406&text=Здравствуйте!%20Хочу%20узнать%20стоимость%20аренды%20всей%20базы%20«Романтик»%20под%20ключ.', '_blank');
+  const handleContactBuyout = (channel: 'max' | 'telegram' | 'phone') => {
+    if (channel === 'max') {
+      window.open('https://max.ru/u/f9LHodD0cOIeGxXmIVw7bqQ7hqCUZM9gGdaZRPoaE0tcO56NWn6cKZpuboc', '_blank');
     } else if (channel === 'telegram') {
       window.open('tg://resolve?domain=romantik_base&text=Здравствуйте!%20Хочу%20узнать%20стоимость%20аренды%20всей%20базы%20«Романтик»%20под%20ключ.', '_blank');
     } else {

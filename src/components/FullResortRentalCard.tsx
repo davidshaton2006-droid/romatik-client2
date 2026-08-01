@@ -2,7 +2,7 @@ import React from 'react';
 import { PartyPopper, Phone, MessageSquare, Check, Trees, Sparkles, Waves, Flame } from 'lucide-react';
 
 interface FullResortRentalCardProps {
-  onContactClick: (channel: 'whatsapp' | 'telegram' | 'phone') => void;
+  onContactClick: (channel: 'max' | 'telegram' | 'phone') => void;
 }
 
 export const FullResortRentalCard: React.FC<FullResortRentalCardProps> = ({ onContactClick }) => {
@@ -79,11 +79,11 @@ export const FullResortRentalCard: React.FC<FullResortRentalCardProps> = ({ onCo
         {/* Action Buttons */}
         <div className="space-y-2">
           <button
-            onClick={() => onContactClick('whatsapp')}
-            className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold text-xs py-3.5 px-4 rounded-2xl shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-98"
+            onClick={() => onContactClick('max')}
+            className="w-full bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-bold text-xs py-3.5 px-4 rounded-2xl shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-98"
           >
-            <MessageSquare className="w-4 h-4 text-emerald-100" />
-            <span>УЗНАТЬ СТОИМОСТЬ В WHATSAPP</span>
+            <MessageSquare className="w-4 h-4 text-indigo-100" />
+            <span>УЗНАТЬ СТОИМОСТЬ В MAX</span>
           </button>
 
           <div className="grid grid-cols-2 gap-2">
