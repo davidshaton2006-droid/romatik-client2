@@ -92,7 +92,7 @@ export default function PaymentForm({
         <p className="text-2xl font-extrabold text-blue-900">
           {amount.toLocaleString('ru-RU')} ₽
         </p>
-        <p className="text-xs text-blue-900/60 mt-1">50% от суммы бронирования</p>
+        <p className="text-xs text-blue-900/60 mt-1">100% от суммы бронирования</p>
       </div>
 
       {/* Payment method selection */}

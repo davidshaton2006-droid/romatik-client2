@@ -106,8 +106,8 @@ export function calculatePricing(
   // Total with services
   const totalPrice = allCabinsTotal + servicesTotal;
 
-  // Prepayment: 50%
-  const prepaymentAmount = Math.round(totalPrice * 0.5);
+  // Prepayment: 100% (full payment upfront via YooKassa)
+  const prepaymentAmount = totalPrice;
   const remainingBalance = totalPrice - prepaymentAmount;
 
   return {

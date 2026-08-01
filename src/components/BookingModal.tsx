@@ -11,6 +11,8 @@ import { calculatePricing, formatPrice } from '../lib/pricing';
 
 interface BookingModalProps {
   initialCabinType?: 'two_seat' | 'three_seat';
+  initialCheckIn?: string;
+  initialCheckOut?: string;
   onClose: () => void;
   onBookingSuccess: (booking: BookingPayload) => void;
   allBookings?: Booking[];
@@ -18,14 +20,16 @@ interface BookingModalProps {
 
 export const BookingModal: React.FC<BookingModalProps> = ({
   initialCabinType = 'two_seat',
+  initialCheckIn = '2026-08-01',
+  initialCheckOut = '2026-08-03',
   onClose,
   onBookingSuccess,
   allBookings = []
 }) => {
   const [cabinType, setCabinType] = useState<'two_seat' | 'three_seat'>(initialCabinType);
   const [cabinsCount, setCabinsCount] = useState<number>(1);
-  const [checkIn, setCheckIn] = useState<string>('2026-08-01');
-  const [checkOut, setCheckOut] = useState<string>('2026-08-03');
+  const [checkIn, setCheckIn] = useState<string>(initialCheckIn);
+  const [checkOut, setCheckOut] = useState<string>(initialCheckOut);
   const [hasThirdAdult, setHasThirdAdult] = useState<boolean>(false);
   
   const [guestName, setGuestName] = useState<string>('');
@@ -208,12 +212,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                   <strong className="text-[#2D5A27]">{createdBooking.totalPrice.toLocaleString('ru-RU')} ₽</strong>
                 </div>
                 <div className="flex justify-between bg-emerald-50 p-2.5 rounded-xl text-[#2D5A27] font-bold text-[11px]">
-                  <span>Предоплата 50% сейчас:</span>
+                  <span>Оплата 100% сейчас:</span>
                   <span>{createdBooking.prepaymentAmount.toLocaleString('ru-RU')} ₽</span>
-                </div>
-                <div className="flex justify-between bg-blue-50 p-2.5 rounded-xl text-blue-900 font-semibold text-[11px]">
-                  <span>Остаток при приезде:</span>
-                  <span>{(createdBooking.totalPrice - createdBooking.prepaymentAmount).toLocaleString('ru-RU')} ₽</span>
                 </div>
               </div>
             </div>

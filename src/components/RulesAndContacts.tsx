@@ -38,7 +38,7 @@ export const RulesAndContacts: React.FC = () => {
                   <strong className="text-amber-800">9 000 ₽ / ночь</strong>
                 </li>
                 <li>• <strong>Доплата за 3-го взрослого:</strong> +1 000 ₽ / сутки в трёхместных домиках (дети до 10 лет проживают <strong>бесплатно</strong>).</li>
-                <li>• <strong>Предоплата:</strong> Для фиксации бронирования вносится <strong>50%</strong> от общей стоимости.</li>
+                <li>• <strong>Предоплата:</strong> Для фиксации бронирования вносится <strong>100%</strong> от общей стоимости.</li>
               </ul>
             </div>
 

@@ -19,6 +19,8 @@ export default function App() {
   // Modals
   const [bookingModalOpen, setBookingModalOpen] = useState<boolean>(false);
   const [selectedCabinTypeForBooking, setSelectedCabinTypeForBooking] = useState<'two_seat' | 'three_seat'>('two_seat');
+  const [selectedCheckIn, setSelectedCheckIn] = useState<string | undefined>(undefined);
+  const [selectedCheckOut, setSelectedCheckOut] = useState<string | undefined>(undefined);
   const [selectedCategoryForDetail, setSelectedCategoryForDetail] = useState<CabinCategoryCard | null>(null);
 
   // Toast notification
@@ -59,8 +61,14 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
-  const handleOpenBookingModal = (cabinType?: 'two_seat' | 'three_seat') => {
+  const handleOpenBookingModal = (
+    cabinType?: 'two_seat' | 'three_seat',
+    checkIn?: string,
+    checkOut?: string
+  ) => {
     setSelectedCabinTypeForBooking(cabinType || 'two_seat');
+    setSelectedCheckIn(checkIn);
+    setSelectedCheckOut(checkOut);
     setBookingModalOpen(true);
   };
 
@@ -91,12 +99,12 @@ export default function App() {
         {activeTab === 'cabins' && (
           <div className="animate-fade-in space-y-4">
             <Hero
-              onSearch={() => handleOpenBookingModal()}
+              onSearch={(checkIn, checkOut) => handleOpenBookingModal(undefined, checkIn, checkOut)}
               onOpenBookingModal={() => handleOpenBookingModal()}
             />
             <CabinCatalog
               bookings={bookings}
-              onOpenBooking={handleOpenBookingModal}
+              onOpenBooking={(cabinType, checkIn, checkOut) => handleOpenBookingModal(cabinType, checkIn, checkOut)}
               onOpenCategoryDetail={(categoryCard) => setSelectedCategoryForDetail(categoryCard)}
             />
           </div>
@@ -141,6 +149,8 @@ export default function App() {
       {bookingModalOpen && (
         <BookingModal
           initialCabinType={selectedCabinTypeForBooking}
+          initialCheckIn={selectedCheckIn}
+          initialCheckOut={selectedCheckOut}
           onClose={() => setBookingModalOpen(false)}
           onBookingSuccess={handleBookingSuccess}
           allBookings={bookings}

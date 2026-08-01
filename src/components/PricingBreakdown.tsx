@@ -79,14 +79,8 @@ export default function PricingBreakdownComponent({
 
         {/* Prepayment info */}
         <div className="flex justify-between bg-emerald-50 p-2.5 rounded-xl text-[#2D5A27] font-bold">
-          <span>Предоплата 50% прямо сейчас:</span>
+          <span>Оплата 100% прямо сейчас:</span>
           <span>{formatPrice(pricing.prepaymentAmount)} ₽</span>
-        </div>
-
-        {/* Remaining balance info */}
-        <div className="flex justify-between bg-blue-50 p-2.5 rounded-xl text-blue-900 text-[11px] font-semibold">
-          <span>Оставшаяся сумма при заезде:</span>
-          <span>{formatPrice(pricing.remainingBalance)} ₽</span>
         </div>
       </div>
 
@@ -94,7 +88,7 @@ export default function PricingBreakdownComponent({
       <div className="bg-orange-50 border border-orange-200 p-3 rounded-xl flex gap-2">
         <AlertCircle className="w-4 h-4 text-orange-700 shrink-0 mt-0.5" />
         <span className="text-[10px] text-orange-800 leading-tight">
-          <strong>Важно:</strong> Предоплата не возвращается при отмене бронирования по инициативе гостя.
+          <strong>Важно:</strong> Оплата вносится в полном объёме и не возвращается при отмене бронирования по инициативе гостя.
         </span>
       </div>
 
