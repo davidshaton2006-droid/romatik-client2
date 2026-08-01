@@ -115,8 +115,8 @@ export function calculateAvailability(
   checkIn: string,
   checkOut: string
 ): { availableDouble: number; availableTriple: number; occupiedDoubleCabins: number[]; occupiedTripleCabins: number[] } {
-  const totalDouble = 10; // 1-10 are 2-seater
-  const totalTriple = 10; // 11-20 are 3-seater
+  const totalDouble = 7; // 1-7 are 2-seater
+  const totalTriple = 10; // 8-17 are 3-seater
 
   const overlappingBookings = filterBookingsByDateRange(bookings, checkIn, checkOut);
 
@@ -148,11 +148,11 @@ export function findAvailableCabin(
   const { occupiedDoubleCabins, occupiedTripleCabins } = calculateAvailability(bookings, checkIn, checkOut);
 
   if (cabinType === 'Двухместный') {
-    for (let i = 1; i <= 10; i++) {
+    for (let i = 1; i <= 7; i++) {
       if (!occupiedDoubleCabins.includes(i)) return i;
     }
   } else if (cabinType === 'Трехместный') {
-    for (let i = 11; i <= 20; i++) {
+    for (let i = 8; i <= 17; i++) {
       if (!occupiedTripleCabins.includes(i)) return i;
     }
   }

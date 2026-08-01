@@ -173,8 +173,8 @@ export function calculateAvailability(
   checkIn: string,
   checkOut: string
 ): { availableDouble: number; availableTriple: number } {
-  const totalDouble = 10; // Cabins 1-10 (двухместные)
-  const totalTriple = 10;  // Cabins 11-20 (трёхместные)
+  const totalDouble = 7; // 7 двухместных домиков
+  const totalTriple = 10; // 10 трёхместных домиков
 
   if (!checkIn || !checkOut) {
     return { availableDouble: totalDouble, availableTriple: totalTriple };

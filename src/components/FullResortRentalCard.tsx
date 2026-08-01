@@ -21,7 +21,7 @@ export const FullResortRentalCard: React.FC<FullResortRentalCardProps> = ({ onCo
             Спец-предложение
           </span>
           <span className="text-xs text-emerald-200/80 font-semibold bg-white/10 px-3 py-1 rounded-full">
-            18 домиков + Вся территория
+            17 домиков + Вся территория
           </span>
         </div>
 
@@ -43,7 +43,7 @@ export const FullResortRentalCard: React.FC<FullResortRentalCardProps> = ({ onCo
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-emerald-50">
             <div className="flex items-center gap-2">
               <Check className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-              <span>Все 18 домиков (до 45 гостей)</span>
+              <span>Все 17 домиков (до 44 гостей)</span>
             </div>
             <div className="flex items-center gap-2">
               <Check className="w-3.5 h-3.5 text-amber-300 shrink-0" />

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Calendar, Users, Sparkles, Search, Trees, ShieldCheck, Heart, Bath } from 'lucide-react';
-import { getImageUrl } from '../utils/imageUtils';
+import { SmartImage } from './SmartImage';
 
 interface HeroProps {
   onSearch: (checkIn: string, checkOut: string, guests: number) => void;
@@ -26,10 +26,12 @@ export const Hero: React.FC<HeroProps> = ({ onSearch, onOpenBookingModal }) => {
           
           {/* Background Image with Gradient Overlay */}
           <div className="absolute inset-0 z-0">
-            <img
-              src={getImageUrl('https://disk.yandex.ru/i/jyaRH0rQHxp9xA')}
+            <SmartImage
+              src="https://disk.yandex.ru/i/jyaRH0rQHxp9xA"
               alt="База отдыха Романтик"
               referrerPolicy="no-referrer"
+              fetchPriority="high"
+              decoding="async"
               className="w-full h-full object-cover mix-blend-overlay opacity-80 scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-[#2D5A27]/60 via-[#2D5A27]/75 to-[#1A1A1A]/85"></div>
@@ -46,7 +48,7 @@ export const Hero: React.FC<HeroProps> = ({ onSearch, onOpenBookingModal }) => {
             </h2>
 
             <p className="text-sm sm:text-base text-white/90 max-w-xl leading-relaxed">
-              Абсолютная тишина, сосны и дубы, 20 уютных домиков с проекторами Smart TV, подогреваемый бассейн, костровая зона и настоящие лесные еноты 🦝.
+              Абсолютная тишина, сосны и дубы, 17 уютных домиков с проекторами Smart TV, подогреваемый бассейн, костровая зона и настоящие лесные еноты 🦝.
             </p>
           </div>
 

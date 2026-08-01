@@ -1,13 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { BookingPayload, Booking } from '../types';
 import { CABIN_CATEGORIES } from '../data/mockCabins';
 import { EXTRA_SERVICES } from '../data/extraServices';
 import { sendBookingToStaffApp } from '../api/client';
-import { X, User, Phone, Send, CheckCircle, Calculator, Trees, Plus, Minus, AlertCircle, Info } from 'lucide-react';
+import { X, User, Phone, Send, CheckCircle, Calculator, Trees, Plus, Minus, AlertCircle, Info, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import AvailabilityCounter from './AvailabilityCounter';
 import PricingBreakdownComponent from './PricingBreakdown';
 import { validateBooking, ValidationError, getFirstErrorForField } from '../lib/validation';
 import { calculatePricing, formatPrice } from '../lib/pricing';
+import { SmartImage } from './SmartImage';
 
 interface BookingModalProps {
   initialCabinType?: 'two_seat' | 'three_seat';
@@ -16,6 +17,25 @@ interface BookingModalProps {
   onClose: () => void;
   onBookingSuccess: (booking: BookingPayload) => void;
   allBookings?: Booking[];
+}
+
+/**
+ * Resort rule: a two-seat cabin fits at most 2 adults + 1 child; a three-seat
+ * cabin fits at most 2 adults + 2 children, OR 3 adults with no children.
+ * Returns how many cabins of the given type are needed to fit everyone.
+ */
+function calculateCabinsNeeded(
+  cabinType: 'two_seat' | 'three_seat',
+  adults: number,
+  children: number
+): number {
+  if (cabinType === 'two_seat') {
+    return Math.max(1, Math.ceil(adults / 2), Math.ceil(children / 1));
+  }
+  if (children === 0) {
+    return Math.max(1, Math.ceil(adults / 3));
+  }
+  return Math.max(1, Math.ceil(adults / 2), Math.ceil(children / 2));
 }
 
 export const BookingModal: React.FC<BookingModalProps> = ({
@@ -30,8 +50,10 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [cabinsCount, setCabinsCount] = useState<number>(1);
   const [checkIn, setCheckIn] = useState<string>(initialCheckIn);
   const [checkOut, setCheckOut] = useState<string>(initialCheckOut);
-  const [hasThirdAdult, setHasThirdAdult] = useState<boolean>(false);
-  
+  const [adultsCount, setAdultsCount] = useState<number>(2);
+  const [childrenCount, setChildrenCount] = useState<number>(0);
+  const [galleryIndex, setGalleryIndex] = useState<number>(0);
+
   const [guestName, setGuestName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [messenger, setMessenger] = useState<'telegram' | 'whatsapp' | 'phone'>('telegram');
@@ -47,6 +69,29 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const activeCategory = useMemo(() => {
     return CABIN_CATEGORIES.find((c) => c.cabinType === cabinType) || CABIN_CATEGORIES[0];
   }, [cabinType]);
+
+  // Reset the photo gallery when the selected cabin category changes
+  useEffect(() => {
+    setGalleryIndex(0);
+  }, [cabinType]);
+
+  // How many cabins are needed to fit the requested adults/children,
+  // per resort capacity rules (see calculateCabinsNeeded above)
+  const cabinsNeeded = useMemo(
+    () => calculateCabinsNeeded(cabinType, adultsCount, childrenCount),
+    [cabinType, adultsCount, childrenCount]
+  );
+
+  // Keep the cabins counter in sync with the auto-calculated requirement
+  useEffect(() => {
+    setCabinsCount(cabinsNeeded);
+  }, [cabinsNeeded]);
+
+  // A per-cabin surcharge only applies when a single three-seat cabin
+  // actually holds a 3rd adult (children under 10 are free and don't count)
+  const hasThirdAdult = useMemo(() => {
+    return cabinType === 'three_seat' && cabinsNeeded === 1 && adultsCount === 3 && childrenCount === 0;
+  }, [cabinType, cabinsNeeded, adultsCount, childrenCount]);
 
   // Pricing calculations
   const calculations = useMemo(() => {
@@ -69,7 +114,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       checkIn,
       checkOut,
       cabinsCount,
-      cabinType === 'three_seat' && hasThirdAdult,
+      hasThirdAdult,
       servicesTotal
     );
   }, [checkIn, checkOut, cabinType, hasThirdAdult, cabinsCount, selectedServices]);
@@ -92,7 +137,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       checkOut,
       guestName,
       guestPhone: phone,
-      hasThirdAdult: cabinType === 'three_seat' ? hasThirdAdult : false,
+      hasThirdAdult,
+      adultsCount,
+      childrenCount,
       totalPrice: calculations.totalPrice,
       prepaymentAmount: calculations.prepaymentAmount,
       status: 'pending_staff_approval',
@@ -200,6 +247,14 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 <span className="text-[#4A3525]/60">Ночей:</span>
                 <strong className="text-[#4A3525]">{calculations.nights}</strong>
               </div>
+              {(createdBooking.adultsCount || createdBooking.childrenCount) && (
+                <div className="flex justify-between">
+                  <span className="text-[#4A3525]/60">Гости:</span>
+                  <strong className="text-[#4A3525]">
+                    {createdBooking.adultsCount} взрослых{createdBooking.childrenCount ? `, ${createdBooking.childrenCount} детей` : ''}
+                  </strong>
+                </div>
+              )}
               {createdBooking.hasThirdAdult && (
                 <div className="flex justify-between text-amber-800 font-semibold text-[10px]">
                   <span>+ 3-й взрослый:</span>
@@ -248,7 +303,53 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 </ul>
               </div>
             )}
-            
+
+            {/* Photo gallery of the selected cabin category */}
+            <div className="relative h-48 sm:h-56 rounded-2xl overflow-hidden bg-slate-900 group">
+              <SmartImage
+                src={activeCategory.photos[galleryIndex] || activeCategory.photos[0]}
+                alt={activeCategory.title}
+                referrerPolicy="no-referrer"
+                decoding="async"
+                className="w-full h-full object-cover transition-all duration-300"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+              {activeCategory.photos.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setGalleryIndex((prev) => (prev - 1 + activeCategory.photos.length) % activeCategory.photos.length)
+                    }
+                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-2 rounded-full transition-all cursor-pointer opacity-90 sm:opacity-0 group-hover:opacity-100"
+                    aria-label="Предыдущее фото"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGalleryIndex((prev) => (prev + 1) % activeCategory.photos.length)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-2 rounded-full transition-all cursor-pointer opacity-90 sm:opacity-0 group-hover:opacity-100"
+                    aria-label="Следующее фото"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </>
+              )}
+
+              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                <span className="bg-[#2D5A27] text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-md">
+                  {activeCategory.title}
+                </span>
+                {activeCategory.photos.length > 1 && (
+                  <span className="bg-black/60 text-white text-[10px] font-bold px-2.5 py-1 rounded-full backdrop-blur-xs">
+                    {galleryIndex + 1} / {activeCategory.photos.length} фото
+                  </span>
+                )}
+              </div>
+            </div>
+
             {/* Step 1: Cabin Type Selection */}
             <div className="space-y-3">
               <label className="block text-xs font-bold text-[#4A3525] uppercase tracking-wider">
@@ -258,10 +359,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Double Option */}
                 <div
-                  onClick={() => {
-                    setCabinType('two_seat');
-                    setHasThirdAdult(false);
-                  }}
+                  onClick={() => setCabinType('two_seat')}
                   className={`p-4 rounded-2xl border transition-all cursor-pointer space-y-1 ${
                     cabinType === 'two_seat'
                       ? 'bg-[#2D5A27]/10 border-[#2D5A27] ring-2 ring-[#2D5A27]'
@@ -291,7 +389,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     <span className="font-bold text-sm text-[#4A3525]">🛏️ Трёхместный домик</span>
                     <span className="text-[10px] font-bold bg-amber-800 text-white px-2 py-0.5 rounded-full">С душем</span>
                   </div>
-                  <p className="text-[11px] text-[#4A3525]/70">Вместимость: 2–3 гостя • Всего 11 шт.</p>
+                  <p className="text-[11px] text-[#4A3525]/70">Вместимость: 2–3 гостя • Всего 10 шт.</p>
                   <span className="text-xs font-extrabold text-[#2D5A27] block pt-1">
                     7 000 ₽ / 9 000 ₽
                   </span>
@@ -347,6 +445,81 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 </div>
               )}
 
+              {/* Adults & Children counters */}
+              <div className="bg-white p-4 rounded-2xl border border-[#4A3525]/10 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-[#2D5A27]" />
+                  <span className="text-xs font-bold text-[#4A3525]">Гости</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center justify-between bg-[#FDFBF7] p-2.5 rounded-xl border border-[#4A3525]/10">
+                    <span className="text-[11px] font-semibold text-[#4A3525]">Взрослые</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setAdultsCount((prev) => Math.max(1, prev - 1))}
+                        className="w-6 h-6 bg-white rounded-lg border border-[#4A3525]/15 flex items-center justify-center text-[#4A3525] font-bold hover:bg-[#2D5A27]/10"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <span className="font-extrabold text-sm text-[#2D5A27] w-4 text-center">{adultsCount}</span>
+                      <button
+                        type="button"
+                        onClick={() => setAdultsCount((prev) => Math.min(20, prev + 1))}
+                        className="w-6 h-6 bg-white rounded-lg border border-[#4A3525]/15 flex items-center justify-center text-[#4A3525] font-bold hover:bg-[#2D5A27]/10"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between bg-[#FDFBF7] p-2.5 rounded-xl border border-[#4A3525]/10">
+                    <span className="text-[11px] font-semibold text-[#4A3525]">Дети до 10 лет</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setChildrenCount((prev) => Math.max(0, prev - 1))}
+                        className="w-6 h-6 bg-white rounded-lg border border-[#4A3525]/15 flex items-center justify-center text-[#4A3525] font-bold hover:bg-[#2D5A27]/10"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <span className="font-extrabold text-sm text-[#2D5A27] w-4 text-center">{childrenCount}</span>
+                      <button
+                        type="button"
+                        onClick={() => setChildrenCount((prev) => Math.min(20, prev + 1))}
+                        className="w-6 h-6 bg-white rounded-lg border border-[#4A3525]/15 flex items-center justify-center text-[#4A3525] font-bold hover:bg-[#2D5A27]/10"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-[11px] text-[#4A3525]/60">
+                  {cabinType === 'two_seat'
+                    ? 'Двухместный домик: до 2 взрослых + 1 ребёнок'
+                    : 'Трёхместный домик: до 2 взрослых + 2 детей, либо 3 взрослых без детей'}
+                  {' '}· Дети до 10 лет проживают бесплатно
+                </p>
+              </div>
+
+              {/* Capacity rule explanation + auto-added cabins */}
+              {cabinsNeeded > 1 && (
+                <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-2xl space-y-1.5 flex items-start gap-3">
+                  <Info className="w-4 h-4 text-amber-800 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-xs font-bold text-[#4A3525] block">
+                      Нужно {cabinsNeeded} домика на {adultsCount} взрослых{childrenCount > 0 ? ` и ${childrenCount} детей` : ''}
+                    </span>
+                    <p className="text-[11px] text-[#4A3525]/70 mt-0.5 leading-relaxed">
+                      По правилам базы отдыха {cabinType === 'three_seat'
+                        ? 'в одном трёхместном домике не может быть более 3 взрослых гостей (или максимум 2 взрослых + 2 детей).'
+                        : 'в одном двухместном домике не может разместиться более 2 взрослых и 1 ребёнка.'}
+                      {' '}Мы автоматически добавили ещё домик того же типа — количество домиков указано ниже, при желании выберите другой тип домика в шаге 1 (двухместный или трёхместный).
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Real-time Availability Counter */}
               {checkIn && checkOut && (
                 <AvailabilityCounter
@@ -357,7 +530,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 />
               )}
 
-              {/* Number of Cabins counter for large companies */}
+              {/* Number of Cabins counter (auto-calculated from guests, adjustable) */}
               <div className={`bg-white p-4 rounded-2xl border transition-colors ${
                 getFirstErrorForField(validationErrors, 'cabinsCount')
                   ? 'border-red-500/50 bg-red-50/30'
@@ -369,7 +542,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                       Количество домиков:
                     </span>
                     <span className="text-[11px] text-[#4A3525]/60">
-                      Для больших компаний и групп
+                      Авто-расчёт по гостям, можно изменить вручную
                     </span>
                   </div>
 
@@ -398,26 +571,18 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 )}
               </div>
 
-              {/* 3rd Adult Option for Triple Cabin */}
-              {cabinType === 'three_seat' && (
-                <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-2xl space-y-1.5">
-                  <label className="flex items-start gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={hasThirdAdult}
-                      onChange={(e) => setHasThirdAdult(e.target.checked)}
-                      className="mt-0.5 rounded text-[#2D5A27] focus:ring-[#2D5A27] w-4 h-4"
-                    />
-                    <div>
-                      <span className="text-xs font-bold text-[#4A3525] block">
-                        Третий взрослый гость (+1000 ₽/сутки)
-                      </span>
-                      <p className="text-[11px] text-[#4A3525]/70 flex items-center gap-1 mt-0.5">
-                        <Info className="w-3.5 h-3.5 text-amber-800 shrink-0" />
-                        <span>Дети до 10 лет проживают бесплатно</span>
-                      </p>
-                    </div>
-                  </label>
+              {/* Auto-derived 3rd adult surcharge info */}
+              {hasThirdAdult && (
+                <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-2xl flex items-start gap-3">
+                  <Info className="w-4 h-4 text-amber-800 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-xs font-bold text-[#4A3525] block">
+                      Доплата за 3-го взрослого: +1 000 ₽/сутки
+                    </span>
+                    <p className="text-[11px] text-[#4A3525]/70 mt-0.5">
+                      Дети до 10 лет проживают бесплатно и не считаются как гости
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
@@ -549,7 +714,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               pricing={calculations}
               cabinType={cabinType}
               cabinsCount={cabinsCount}
-              hasThirdAdult={cabinType === 'three_seat' && hasThirdAdult}
+              hasThirdAdult={hasThirdAdult}
             />
 
             {/* Submit Action */}

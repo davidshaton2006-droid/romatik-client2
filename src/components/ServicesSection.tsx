@@ -1,6 +1,7 @@
 import React from 'react';
 import { Flame, Clock, Check, Calendar, UtensilsCrossed, Waves } from 'lucide-react';
-import { getImageUrl, FALLBACK_IMAGES } from '../utils/imageUtils';
+import { FALLBACK_IMAGES } from '../utils/imageUtils';
+import { SmartImage } from './SmartImage';
 
 interface ServicesSectionProps {
   onOpenBookingModal: () => void;
@@ -14,7 +15,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onOpenBookingM
       price: '3 000 ₽ / 2 часа',
       duration: '2 часа комфортного парения',
       description: 'Настоящая дровяная парная с гималайской солью, березовыми вениками и ароматным эфирным маслом. Освежающий обливной ушат после парения.',
-      image: getImageUrl('https://disk.yandex.ru/i/VVHC-GZ8cfZ21Q'),
+      image: 'https://disk.yandex.ru/i/VVHC-GZ8cfZ21Q',
       fallback: FALLBACK_IMAGES.sauna,
       features: [
         'Печь на дубовых и березовых дровах',
@@ -29,7 +30,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onOpenBookingM
       price: '5 000 ₽ / 2 часа',
       duration: '2 часа расслабления на свежем воздухе',
       description: 'Горячий купель под открытым небом с панорамным видом на сосновый бор. Наполняется чистейшей водой с добавлением хвои, цитрусовых и лесных трав.',
-      image: getImageUrl('https://disk.yandex.ru/i/OauMGPHtsUYXPg'),
+      image: 'https://disk.yandex.ru/i/OauMGPHtsUYXPg',
       fallback: FALLBACK_IMAGES.chan,
       features: [
         'Парение под открытым звездным небом',
@@ -44,7 +45,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onOpenBookingM
       price: 'Питание по меню',
       duration: 'Работает ежедневно с 08:00 до 22:00',
       description: 'Уютное эко-кафе на территории базы. Комплексные завтраки, натуральный свежесваренный кофе, травяные чаи, прохладительные напитки и снеки.',
-      image: getImageUrl('https://disk.yandex.ru/i/uRheTuXizIMkTQ'),
+      image: 'https://disk.yandex.ru/i/uRheTuXizIMkTQ',
       fallback: FALLBACK_IMAGES.cafe,
       features: [
         'Фермерские комплексные завтраки',
@@ -82,10 +83,11 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onOpenBookingM
               <div>
                 {/* Photo Header */}
                 <div className="h-52 relative overflow-hidden bg-[#4A3525]/10">
-                  <img
+                  <SmartImage
                     src={service.image}
                     alt={service.title}
                     referrerPolicy="no-referrer"
+                    decoding="async"
                     onError={(e) => {
                       if (service.fallback && e.currentTarget.src !== service.fallback) {
                         e.currentTarget.src = service.fallback;

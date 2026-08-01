@@ -1,6 +1,7 @@
 import React from 'react';
 import { Flame, Bath, UtensilsCrossed, Waves, Smile, Coffee, Trees, Check, Calendar } from 'lucide-react';
-import { getImageUrl, FALLBACK_IMAGES } from '../utils/imageUtils';
+import { FALLBACK_IMAGES } from '../utils/imageUtils';
+import { SmartImage } from './SmartImage';
 
 interface TerritorySectionProps {
   onOpenBookingModal: () => void;
@@ -15,7 +16,7 @@ export const TerritorySection: React.FC<TerritorySectionProps> = ({ onOpenBookin
       description: 'Большой открытый бассейн с подогревом. Включает комфортную взрослую зону и неглубокую безопасную детскую секцию. Работает ежедневно с 09:00 до 22:00.',
       icon: Waves,
       price: 'Бесплатно для гостей',
-      image: getImageUrl('https://disk.yandex.ru/i/4AWcmVhye1ZUnQ'),
+      image: 'https://disk.yandex.ru/i/4AWcmVhye1ZUnQ',
       fallback: FALLBACK_IMAGES.pool,
       features: ['Отдельная неглубокая детская зона', 'Работает ежедневно 09:00 - 22:00', 'Комфортная температура воды', 'Шезлонги для отдыха']
     },
@@ -26,7 +27,7 @@ export const TerritorySection: React.FC<TerritorySectionProps> = ({ onOpenBookin
       description: 'Наша главная любовь и гордость! На территории базы отдыха в лесу живут настоящий пушистые еноты, которые иногда выходят к гостям и создают непередаваемые радостные эмоции.',
       icon: Smile,
       price: 'Бесплатные эмоции',
-      image: getImageUrl('https://disk.yandex.ru/i/gvjU5RMeWFHv5A'),
+      image: 'https://disk.yandex.ru/i/gvjU5RMeWFHv5A',
       fallback: FALLBACK_IMAGES.raccoons,
       features: ['Естественная среда в лесу', 'Восторг для детей и взрослых', 'Уникальные фото на память', 'Доброжелательные еноты']
     },
@@ -37,7 +38,7 @@ export const TerritorySection: React.FC<TerritorySectionProps> = ({ onOpenBookin
       description: 'Уютная локация под кронами сосен для вечерних посиделок у открытого огня. Удобные шезлонги и бесплатные дрова для всех гостей.',
       icon: Trees,
       price: 'Дрова бесплатно',
-      image: getImageUrl('https://disk.yandex.ru/i/sTLb7X06M3Hw2w'),
+      image: 'https://disk.yandex.ru/i/sTLb7X06M3Hw2w',
       fallback: FALLBACK_IMAGES.campfire,
       features: ['Удобные глубокие шезлонги', 'Дрова предоставляются бесплатно', 'Вечерняя душевная атмосфера', 'Теплые пледы']
     },
@@ -48,7 +49,7 @@ export const TerritorySection: React.FC<TerritorySectionProps> = ({ onOpenBookin
       description: '3 классических мангала и 1 большой гриль. Разрешено привозить свои продукты и любые напитки без ограничений и сборов! (Рекомендуем взять свои шампуры и решётки).',
       icon: UtensilsCrossed,
       price: 'Бесплатно для гостей',
-      image: getImageUrl('https://disk.yandex.ru/i/Sg8CYcymNq0bhw'),
+      image: 'https://disk.yandex.ru/i/Sg8CYcymNq0bhw',
       fallback: FALLBACK_IMAGES.bbq,
       features: ['3 мангала + 1 гриль', 'Разрешено привозить свои продукты', 'Без пробкового сбора', 'Подсветка в вечернее время']
     },
@@ -59,7 +60,7 @@ export const TerritorySection: React.FC<TerritorySectionProps> = ({ onOpenBookin
       description: 'Кафе с обновляемым Меню Дня и бар с напитками. В кафе гости могут бесплатно пользоваться холодильником, микроволновкой, чайником и посудой для хранения и разогрева своей еды.',
       icon: Coffee,
       price: 'Питание по меню дня',
-      image: getImageUrl('https://disk.yandex.ru/i/uRheTuXizIMkTQ'),
+      image: 'https://disk.yandex.ru/i/uRheTuXizIMkTQ',
       fallback: FALLBACK_IMAGES.cafe,
       features: ['Ежедневное Меню Дня', 'Бесплатный холодильник & СВЧ', 'Чайник и посуда для своей еды', 'Заботливый персонал 24/7']
     },
@@ -70,7 +71,7 @@ export const TerritorySection: React.FC<TerritorySectionProps> = ({ onOpenBookin
       description: 'Горячий чан на дровах под соснами с добавлением пихтовых веток, алтайских трав и цитрусов. Вода разогревается до комфортных +40°C.',
       icon: Bath,
       price: '5 000 ₽ / 2 часа',
-      image: getImageUrl('https://disk.yandex.ru/i/OauMGPHtsUYXPg'),
+      image: 'https://disk.yandex.ru/i/OauMGPHtsUYXPg',
       fallback: FALLBACK_IMAGES.chan,
       features: ['Запарка из алтайских трав', 'Пихтовые ветки и цитрусы', 'Индивидуальная терраса', 'Вечерняя подсветка']
     },
@@ -81,7 +82,7 @@ export const TerritorySection: React.FC<TerritorySectionProps> = ({ onOpenBookin
       description: 'Просторная парная из сруба на дровах, ароматы березовых и дубовых веников, травяной чай и уютная комната отдыха.',
       icon: Flame,
       price: '3 000 ₽ / 2 часа',
-      image: getImageUrl('https://disk.yandex.ru/i/VVHC-GZ8cfZ21Q'),
+      image: 'https://disk.yandex.ru/i/VVHC-GZ8cfZ21Q',
       fallback: FALLBACK_IMAGES.sauna,
       features: ['Дубовые и берёзовые веники', 'Парная на дровах', 'Чай из самовара с мёдом', 'Комната отдыха']
     }
@@ -116,10 +117,11 @@ export const TerritorySection: React.FC<TerritorySectionProps> = ({ onOpenBookin
                 <div>
                   {/* Image container */}
                   <div className="relative h-52 overflow-hidden bg-[#4A3525]/10">
-                    <img
+                    <SmartImage
                       src={item.image}
                       alt={item.title}
                       referrerPolicy="no-referrer"
+                      decoding="async"
                       onError={(e) => {
                         if (item.fallback && e.currentTarget.src !== item.fallback) {
                           e.currentTarget.src = item.fallback;

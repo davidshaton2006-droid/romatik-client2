@@ -56,7 +56,7 @@ export const CabinCatalog: React.FC<CabinCatalogProps> = ({
           </div>
           <div className="text-xs sm:text-sm text-[#4A3525]/80 max-w-lg space-y-1">
             <p className="font-medium">
-              18 эко-домиков в сосновом бору с ванной или душем, проекторами Smart TV и панорамными окнами.
+              17 эко-домиков в сосновом бору с ванной или душем, проекторами Smart TV и панорамными окнами.
             </p>
             <p className="text-xs text-[#2D5A27] font-semibold">
               💡 Фиксированная цена: 7 000 ₽ (пн-чт) / 9 000 ₽ (пт-вс)
@@ -124,7 +124,7 @@ export const CabinCatalog: React.FC<CabinCatalogProps> = ({
                 🛏️ Двухместные: Доступно {availability.availableDouble} из 7
               </span>
               <span className="bg-emerald-100 text-[#2D5A27] px-3 py-1 rounded-full font-bold">
-                🛏️ Трёхместные: Доступно {availability.availableTriple} из 11
+                🛏️ Трёхместные: Доступно {availability.availableTriple} из 10
               </span>
             </div>
             

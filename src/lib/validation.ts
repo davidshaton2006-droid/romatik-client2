@@ -141,7 +141,7 @@ export function checkDoubleBooking(
     }
   });
 
-  const totalCabins = 10; // 10 двухместных и 10 трёхместных
+  const totalCabins = cabinType === 'two_seat' ? 7 : 10; // 7 двухместных и 10 трёхместных
   const availableCabins = totalCabins - occupiedCount;
 
   if (cabinsCount > availableCabins) {

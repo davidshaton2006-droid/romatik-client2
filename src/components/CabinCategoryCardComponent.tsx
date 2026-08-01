@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CabinCategoryCard } from '../types';
 import { AMENITIES_DICTIONARY } from '../data/mockCabins';
-import { getImageUrl } from '../utils/imageUtils';
+import { SmartImage } from './SmartImage';
 import { Users, BedDouble, ChevronLeft, ChevronRight, Bath, ShowerHead, Calendar, Sparkles } from 'lucide-react';
 
 interface CabinCategoryCardComponentProps {
@@ -34,10 +34,11 @@ export const CabinCategoryCardComponent: React.FC<CabinCategoryCardComponentProp
       
       {/* Carousel Header */}
       <div className="h-64 sm:h-72 relative overflow-hidden bg-[#4A3525]/10 cursor-pointer" onClick={() => onOpenDetailModal(categoryCard)}>
-        <img
-          src={getImageUrl(categoryCard.photos[currentPhotoIndex])}
+        <SmartImage
+          src={categoryCard.photos[currentPhotoIndex]}
           alt={categoryCard.title}
           referrerPolicy="no-referrer"
+          decoding="async"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
 

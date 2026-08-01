@@ -22,7 +22,7 @@ export const Footer: React.FC<FooterProps> = ({ onTabChange, onOpenBookingModal 
               <span className="font-serif text-2xl font-bold tracking-tight text-white">РОМАНТИК</span>
             </div>
             <p className="text-xs text-white/70 leading-relaxed">
-              Эко-база отдыха в дубово-сосновом лесу. 18 уютных домиков, бассейн, банный чан, русская баня и еноты на территории.
+              Эко-база отдыха в дубово-сосновом лесу. 17 уютных домиков, бассейн, банный чан, русская баня и еноты на территории.
             </p>
             <div className="inline-flex items-center gap-1.5 bg-[#2D5A27]/30 text-emerald-300 px-3 py-1 rounded-full text-[10px] font-semibold border border-[#2D5A27]/50">
               <ShieldCheck className="w-3.5 h-3.5" />

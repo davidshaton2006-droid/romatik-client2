@@ -16,7 +16,7 @@ export default function AvailabilityCounter({
   checkOut,
   cabinType
 }: AvailabilityCounterProps) {
-  const [availability, setAvailability] = useState({ availableDouble: 10, availableTriple: 10 });
+  const [availability, setAvailability] = useState({ availableDouble: 7, availableTriple: 10 });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export default function AvailabilityCounter({
 
   const isSelected = cabinType === 'two_seat';
   const availableCount = isSelected ? availability.availableDouble : availability.availableTriple;
-  const totalCount = 10;
+  const totalCount = isSelected ? 7 : 10;
   const occupiedCount = totalCount - availableCount;
   const percentage = Math.round((availableCount / totalCount) * 100);
 

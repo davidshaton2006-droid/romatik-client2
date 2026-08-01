@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CabinCategoryCard } from '../types';
 import { AMENITIES_DICTIONARY } from '../data/mockCabins';
-import { getImageUrl } from '../utils/imageUtils';
+import { SmartImage } from './SmartImage';
 import { X, Users, BedDouble, Calendar, CheckCircle2, ChevronLeft, ChevronRight, Bath, ShowerHead, Trees, Sparkles } from 'lucide-react';
 
 interface CabinDetailModalProps {
@@ -34,10 +34,11 @@ export const CabinDetailModal: React.FC<CabinDetailModalProps> = ({
 
         {/* Gallery Hero */}
         <div className="relative h-72 sm:h-96 bg-slate-900">
-          <img
-            src={getImageUrl(categoryCard.photos[activePhotoIndex] || categoryCard.photos[0])}
+          <SmartImage
+            src={categoryCard.photos[activePhotoIndex] || categoryCard.photos[0]}
             alt={categoryCard.title}
             referrerPolicy="no-referrer"
+            decoding="async"
             className="w-full h-full object-cover transition-all duration-300"
           />
 
@@ -83,7 +84,13 @@ export const CabinDetailModal: React.FC<CabinDetailModalProps> = ({
                 activePhotoIndex === idx ? 'border-[#2D5A27] scale-105' : 'border-transparent opacity-60 hover:opacity-100'
               }`}
             >
-              <img src={getImageUrl(img)} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              <SmartImage
+                src={img}
+                alt=""
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+                decoding="async"
+              />
             </button>
           ))}
         </div>

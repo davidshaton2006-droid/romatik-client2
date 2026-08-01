@@ -44,6 +44,8 @@ export interface BookingPayload {
   guestName: string;
   guestPhone: string;
   hasThirdAdult: boolean;
+  adultsCount?: number;
+  childrenCount?: number;
   totalPrice: number;
   prepaymentAmount: number;
   status: BookingStatus;
