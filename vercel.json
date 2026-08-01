@@ -6,9 +6,5 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "env": {
-    "VITE_FIREBASE_PROJECT_ID": "@firebase_project_id",
-    "VITE_FIREBASE_API_KEY": "@firebase_api_key"
-  }
+  ]
 }
