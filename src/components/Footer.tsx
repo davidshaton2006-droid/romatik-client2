@@ -133,7 +133,10 @@ export const Footer: React.FC<FooterProps> = ({ onTabChange, onOpenBookingModal 
         </div>
 
         <div className="pt-8 border-t border-white/10 text-center text-xs text-white/50 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© 2026 База отдыха «Романтик». Все права защищены.</p>
+          <p className="flex items-center gap-3 flex-wrap justify-center">
+            <span>© 2026 База отдыха «Романтик». Все права защищены.</span>
+            <a href="/requisites" className="hover:underline hover:text-emerald-300">Реквизиты</a>
+          </p>
           <p className="flex items-center gap-1">
             Сделано с любовью к природе <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400" />
           </p>
