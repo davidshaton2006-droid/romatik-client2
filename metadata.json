@@ -1,0 +1,6 @@
+{
+  "name": "База отдыха Романтик",
+  "description": "Эко-курорт «Романтик»: бронирование уютных домиков в лесу, бани, сибирского чана и синхронизация с PWA персонала.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
