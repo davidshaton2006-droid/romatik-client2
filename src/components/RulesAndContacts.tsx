@@ -99,7 +99,14 @@ export const RulesAndContacts: React.FC = () => {
                   </div>
                   <div>
                     <strong className="block text-white font-semibold">Адрес базы отдыха:</strong>
-                    <span className="text-emerald-100">Краснодарский край, Северский район, станица Ставропольская</span>
+                    <a
+                      href="https://yandex.ru/maps/org/romantik/126160966311/?ll=38.876485%2C44.702748&z=12.3"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-emerald-100 hover:underline hover:text-emerald-300"
+                    >
+                      Краснодарский край, Северский район, станица Ставропольская
+                    </a>
                   </div>
                 </div>
 
@@ -123,7 +130,7 @@ export const RulesAndContacts: React.FC = () => {
                     <strong className="block text-white font-semibold">Мессенджеры и быстрая связь:</strong>
                     <div className="flex flex-wrap gap-2.5 pt-1.5">
                       <a
-                        href="https://wa.me/79184440406"
+                        href="https://api.whatsapp.com/send?phone=79184440406&text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5.%20%D0%A5%D0%BE%D1%87%D1%83%20%D0%B7%D0%B0%D0%B1%D1%80%D0%BE%D0%BD%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D1%82%D1%8C%20%D0%B4%D0%BE%D0%BC%D0%B8%D0%BA%21"
                         target="_blank"
                         rel="noreferrer"
                         className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 border border-emerald-400/30 shadow-xs"
@@ -131,18 +138,32 @@ export const RulesAndContacts: React.FC = () => {
                         WhatsApp
                       </a>
                       <a
-                        href="https://t.me/+79184440406"
-                        target="_blank"
-                        rel="noreferrer"
+                        href="tg://resolve?domain=romantik_base&text=Здравствуйте.%20Хочу%20забронировать%20домик%21"
                         className="bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 border border-sky-400/30 shadow-xs"
                       >
                         Telegram
                       </a>
                       <a
+                        href="https://max.ru/u/f9LHodD0cOIeGxXmIVw7bqQ7hqCUZM9gGdaZRPoaE0tcO56NWn6cKZpuboc"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 border border-indigo-400/30 shadow-xs"
+                      >
+                        ⚡ MAX
+                      </a>
+                      <a
+                        href="https://www.instagram.com/romantik_base/"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="bg-fuchsia-600 hover:bg-fuchsia-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 border border-fuchsia-400/30 shadow-xs"
+                      >
+                        Instagram
+                      </a>
+                      <a
                         href="tel:+79184440406"
                         className="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-3.5 py-2 rounded-xl flex items-center gap-1.5 border border-amber-400/30 shadow-xs"
                       >
-                        ⚡ MAX / Звонок
+                        📞 Позвонить
                       </a>
                     </div>
                   </div>
@@ -151,13 +172,13 @@ export const RulesAndContacts: React.FC = () => {
 
               <div className="pt-2">
                 <a
-                  href="https://yandex.ru/maps"
+                  href="https://yandex.ru/maps/org/romantik/126160966311/?ll=38.876485%2C44.702748&z=12.3"
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-2 bg-[#FDFBF7] hover:bg-white text-[#2D5A27] px-5 py-3 rounded-2xl font-bold text-xs transition-all shadow-md cursor-pointer"
                 >
                   <Navigation className="w-4 h-4" />
-                  Построить маршрут в Яндекс.Навигаторе
+                  Открыть на Яндекс Картах
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>

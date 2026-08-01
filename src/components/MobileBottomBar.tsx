@@ -64,7 +64,7 @@ export const MobileBottomBar: React.FC<MobileBottomBarProps> = ({
 
         {/* Call */}
         <a
-          href="tel:+79130000000"
+          href="tel:+79184440406"
           className="flex flex-col items-center justify-center p-1.5 text-[#4A3525] hover:text-[#2D5A27]"
         >
           <Phone className="w-5 h-5 text-[#2D5A27]" />

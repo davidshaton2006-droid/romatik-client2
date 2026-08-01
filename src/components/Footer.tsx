@@ -67,13 +67,53 @@ export const Footer: React.FC<FooterProps> = ({ onTabChange, onOpenBookingModal 
               </li>
               <li className="flex items-start gap-2">
                 <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                <span>Краснодарский край, Северский район, ст. Ставропольская</span>
+                <a
+                  href="https://yandex.ru/maps/org/romantik/126160966311/?ll=38.876485%2C44.702748&z=12.3"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:underline hover:text-emerald-300"
+                >
+                  Краснодарский край, Северский район, ст. Ставропольская
+                </a>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 <span>info@romantic-resort.ru</span>
               </li>
             </ul>
+
+            <div className="flex flex-wrap gap-2 pt-1">
+              <a
+                href="https://api.whatsapp.com/send?phone=79184440406&text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5.%20%D0%A5%D0%BE%D1%87%D1%83%20%D0%B7%D0%B0%D0%B1%D1%80%D0%BE%D0%BD%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D1%82%D1%8C%20%D0%B4%D0%BE%D0%BC%D0%B8%D0%BA%21"
+                target="_blank"
+                rel="noreferrer"
+                className="bg-white/10 hover:bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-colors"
+              >
+                WhatsApp
+              </a>
+              <a
+                href="tg://resolve?domain=romantik_base&text=Здравствуйте.%20Хочу%20забронировать%20домик%21"
+                className="bg-white/10 hover:bg-sky-600 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-colors"
+              >
+                Telegram
+              </a>
+              <a
+                href="https://max.ru/u/f9LHodD0cOIeGxXmIVw7bqQ7hqCUZM9gGdaZRPoaE0tcO56NWn6cKZpuboc"
+                target="_blank"
+                rel="noreferrer"
+                className="bg-white/10 hover:bg-indigo-600 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-colors"
+              >
+                MAX
+              </a>
+              <a
+                href="https://www.instagram.com/romantik_base/"
+                target="_blank"
+                rel="noreferrer"
+                className="bg-white/10 hover:bg-fuchsia-600 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-colors"
+              >
+                Instagram
+              </a>
+            </div>
           </div>
 
           {/* Col 4: Action */}

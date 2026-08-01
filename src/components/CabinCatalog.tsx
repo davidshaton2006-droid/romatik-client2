@@ -32,9 +32,9 @@ export const CabinCatalog: React.FC<CabinCatalogProps> = ({
 
   const handleContactBuyout = (channel: 'whatsapp' | 'telegram' | 'phone') => {
     if (channel === 'whatsapp') {
-      window.open('https://wa.me/79184440406?text=Здравствуйте!%20Хочу%20узнать%20стоимость%20аренды%20всей%20базы%20«Романтик»%20под%20ключ.', '_blank');
+      window.open('https://api.whatsapp.com/send?phone=79184440406&text=Здравствуйте!%20Хочу%20узнать%20стоимость%20аренды%20всей%20базы%20«Романтик»%20под%20ключ.', '_blank');
     } else if (channel === 'telegram') {
-      window.open('https://t.me/+79184440406', '_blank');
+      window.open('tg://resolve?domain=romantik_base&text=Здравствуйте!%20Хочу%20узнать%20стоимость%20аренды%20всей%20базы%20«Романтик»%20под%20ключ.', '_blank');
     } else {
       window.location.href = 'tel:+79184440406';
     }
