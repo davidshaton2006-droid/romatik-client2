@@ -33,9 +33,9 @@ export const RequisitesPage: React.FC = () => {
         <div className="bg-white rounded-[32px] border border-[#4A3525]/10 shadow-xs p-6 sm:p-8 space-y-5">
           <div className="flex justify-between items-center border-b border-[#4A3525]/10 pb-4">
             <span className="text-xs font-bold text-[#4A3525]/60 uppercase tracking-wider">
-              Организационно-правовая форма
+              Индивидуальный предприниматель
             </span>
-            <strong className="text-sm text-[#4A3525]">Индивидуальный предприниматель</strong>
+            <strong className="text-sm text-[#4A3525]">Шатон Денис Васильевич</strong>
           </div>
 
           <div className="flex justify-between items-center border-b border-[#4A3525]/10 pb-4">
