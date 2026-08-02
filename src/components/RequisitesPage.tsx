@@ -61,7 +61,9 @@ export const RequisitesPage: React.FC = () => {
 
           <div className="flex items-center gap-3 text-sm">
             <Mail className="w-4 h-4 text-[#2D5A27] shrink-0" />
-            <span>info@romantic-resort.ru</span>
+            <a href="mailto:romantik-baza@mail.ru" className="hover:underline font-semibold">
+              romantik-baza@mail.ru
+            </a>
           </div>
 
           <div className="flex items-start gap-3 text-sm">

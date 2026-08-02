@@ -78,7 +78,9 @@ export const Footer: React.FC<FooterProps> = ({ onTabChange, onOpenBookingModal 
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span>info@romantic-resort.ru</span>
+                <a href="mailto:romantik-baza@mail.ru" className="hover:underline hover:text-emerald-300">
+                  romantik-baza@mail.ru
+                </a>
               </li>
             </ul>
 

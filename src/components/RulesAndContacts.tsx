@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, MapPin, Phone, MessageSquare, Clock, AlertTriangle, Navigation, ExternalLink, Trees, CreditCard, Ban } from 'lucide-react';
+import { ShieldCheck, MapPin, Phone, Mail, MessageSquare, Clock, AlertTriangle, Navigation, ExternalLink, Trees, CreditCard, Ban } from 'lucide-react';
 
 export const RulesAndContacts: React.FC = () => {
   return (
@@ -118,6 +118,18 @@ export const RulesAndContacts: React.FC = () => {
                     <strong className="block text-white font-semibold">Отдел бронирования (24/7):</strong>
                     <a href="tel:+79184440406" className="text-amber-300 font-bold hover:underline text-base">
                       8 (918) 444-04-06
+                    </a>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center shrink-0">
+                    <Mail className="w-5 h-5 text-emerald-300" />
+                  </div>
+                  <div>
+                    <strong className="block text-white font-semibold">Электронная почта:</strong>
+                    <a href="mailto:romantik-baza@mail.ru" className="text-emerald-100 hover:underline hover:text-emerald-300">
+                      romantik-baza@mail.ru
                     </a>
                   </div>
                 </div>
