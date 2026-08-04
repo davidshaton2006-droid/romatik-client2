@@ -3,8 +3,8 @@ main = "src/index.ts"
 compatibility_date = "2025-01-01"
 
 [vars]
-FIREBASE_PROJECT_ID = "nimble-cairn-ssx2c"
-FIREBASE_DATABASE_ID = "ai-studio-3b154fdf-8079-4a99-b49e-8c7d575cecad"
+FIREBASE_PROJECT_ID = "romantik-client"
+FIREBASE_DATABASE_ID = "(default)"
 ALLOWED_ORIGINS = "https://romantik-baza.ru,http://romantik-baza.ru,https://www.romantik-baza.ru"
 
 # Secrets — set these with `wrangler secret put <NAME>`, never commit them:

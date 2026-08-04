@@ -176,7 +176,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         cabinsCount: result.cabinsCount,
         hasThirdAdult: result.hasThirdAdult,
         selectedExtraServices: result.selectedExtraServices || [],
-        guestName: result.guestName
+        guestName: result.guestName,
+        guestPhone: result.guestPhone
       });
 
       if (payment?.confirmationUrl) {

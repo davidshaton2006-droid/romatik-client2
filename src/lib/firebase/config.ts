@@ -6,15 +6,15 @@ import {
   Firestore
 } from 'firebase/firestore';
 
-// Firebase config from staff app (nimble-cairn-ssx2c project)
+// Firebase config — shared with the staff app (romantik-client project)
 const firebaseConfig = {
-  projectId: 'nimble-cairn-ssx2c',
-  appId: '1:1021219209449:web:71bdb1bb7439ea207cf078',
-  apiKey: 'AIzaSyBAgqdJMxuAEFTPSSHvpUkIkVV0712X7vA',
-  authDomain: 'nimble-cairn-ssx2c.firebaseapp.com',
-  storageBucket: 'nimble-cairn-ssx2c.firebasestorage.app',
-  messagingSenderId: '1021219209449',
-  measurementId: ''
+  projectId: 'romantik-client',
+  appId: '1:554669192783:web:7d5b3fb46c6f254a2e9c3a',
+  apiKey: 'AIzaSyA51Io4f_wvlnHlxm4CGRv0YavokXV4VJI',
+  authDomain: 'romantik-client.firebaseapp.com',
+  storageBucket: 'romantik-client.firebasestorage.app',
+  messagingSenderId: '554669192783',
+  measurementId: 'G-RZJCF1C8BQ'
 };
 
 let firestoreInstance: Firestore | null = null;
@@ -23,14 +23,13 @@ let appInstance: any = null;
 async function initFirebase() {
   try {
     appInstance = initializeApp(firebaseConfig);
-    const databaseId = 'ai-studio-3b154fdf-8079-4a99-b49e-8c7d575cecad';
 
     firestoreInstance = initializeFirestore(appInstance, {
       localCache: persistentLocalCache({
         tabManager: persistentMultipleTabManager()
       }),
       experimentalForceLongPolling: true
-    }, databaseId);
+    });
 
     console.log('✅ Firebase initialized successfully');
     return firestoreInstance;

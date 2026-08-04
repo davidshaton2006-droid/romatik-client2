@@ -13,6 +13,7 @@ export interface CreatePaymentParams {
   hasThirdAdult: boolean;
   selectedExtraServices: string[];
   guestName: string;
+  guestPhone: string;
 }
 
 export interface CreatePaymentResult {
@@ -21,9 +22,11 @@ export interface CreatePaymentResult {
   amount: number;
 }
 
+const DEFAULT_PAYMENTS_API_URL = 'https://romantik-baza-payments.romantik-baza.workers.dev';
+
 function getPaymentsApiUrl(): string {
   const configured = import.meta.env.VITE_PAYMENTS_API_URL as string | undefined;
-  return configured || '';
+  return configured || DEFAULT_PAYMENTS_API_URL;
 }
 
 /**

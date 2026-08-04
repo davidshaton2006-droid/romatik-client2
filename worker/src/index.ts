@@ -43,10 +43,19 @@ async function handleCreatePayment(request: Request, env: Env, cors: Record<stri
     return json({ error: 'Invalid JSON body' }, 400, cors);
   }
 
-  const { bookingId, checkIn, checkOut, cabinsCount, hasThirdAdult, selectedExtraServices, cabinType, guestName, returnUrl } = body;
+  const { bookingId, checkIn, checkOut, cabinsCount, hasThirdAdult, selectedExtraServices, cabinType, guestName, guestPhone, returnUrl } = body;
 
-  if (!bookingId || !checkIn || !checkOut || !cabinsCount || !cabinType || !returnUrl) {
+  if (!bookingId || !checkIn || !checkOut || !cabinsCount || !cabinType || !returnUrl || !guestPhone) {
     return json({ error: 'Missing required fields' }, 400, cors);
+  }
+
+  // YooKassa requires a fiscal-receipt phone in "7XXXXXXXXXX" format (digits only)
+  let normalizedPhone = String(guestPhone).replace(/\D/g, '');
+  if (normalizedPhone.length === 11 && normalizedPhone.startsWith('8')) {
+    normalizedPhone = `7${normalizedPhone.slice(1)}`;
+  }
+  if (normalizedPhone.length !== 11) {
+    return json({ error: 'Invalid phone number' }, 400, cors);
   }
 
   const servicesTotal = calculateServicesTotal(selectedExtraServices);
@@ -67,7 +76,8 @@ async function handleCreatePayment(request: Request, env: Env, cors: Record<stri
       amountRub: totalPrice,
       description: `Бронирование ${CABIN_TITLES[cabinType] || cabinType} — ${guestName || ''} (#${bookingId})`.trim(),
       returnUrl,
-      bookingId
+      bookingId,
+      customerPhone: normalizedPhone
     });
 
     return json(

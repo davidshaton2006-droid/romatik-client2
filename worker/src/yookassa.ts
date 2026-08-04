@@ -23,8 +23,11 @@ export async function createYooKassaPayment(
     description: string;
     returnUrl: string;
     bookingId: string;
+    customerPhone: string;
   }
 ): Promise<YooKassaPayment> {
+  const amountValue = params.amountRub.toFixed(2);
+
   const res = await fetch('https://api.yookassa.ru/v3/payments', {
     method: 'POST',
     headers: {
@@ -33,11 +36,26 @@ export async function createYooKassaPayment(
       'Idempotence-Key': crypto.randomUUID()
     },
     body: JSON.stringify({
-      amount: { value: params.amountRub.toFixed(2), currency: 'RUB' },
+      amount: { value: amountValue, currency: 'RUB' },
       confirmation: { type: 'redirect', return_url: params.returnUrl },
       capture: true,
       description: params.description,
-      metadata: { bookingId: params.bookingId }
+      metadata: { bookingId: params.bookingId },
+      receipt: {
+        customer: { phone: params.customerPhone },
+        tax_system_code: 2,
+        items: [
+          {
+            description: params.description.slice(0, 128),
+            quantity: '1.00',
+            amount: { value: amountValue, currency: 'RUB' },
+            vat_code: 1,
+            payment_mode: 'full_payment',
+            payment_subject: 'service',
+            tax_system_code: 2
+          }
+        ]
+      }
     })
   });
 
