@@ -8,6 +8,7 @@ import AvailabilityCounter from './AvailabilityCounter';
 import PricingBreakdownComponent from './PricingBreakdown';
 import { validateBooking, ValidationError, getFirstErrorForField } from '../lib/validation';
 import { calculatePricing, formatPrice } from '../lib/pricing';
+import { createPayment } from '../lib/yookassa';
 import { SmartImage } from './SmartImage';
 
 interface BookingModalProps {
@@ -163,9 +164,28 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     try {
       // Call staff app integration method
       const result = await sendBookingToStaffApp(bookingPayload);
+      onBookingSuccess(result);
+
+      // Send the guest to pay via YooKassa if payments are configured;
+      // otherwise fall back to showing the confirmation screen directly.
+      const payment = await createPayment({
+        bookingId: result.id,
+        cabinType: result.cabinType,
+        checkIn: result.checkIn,
+        checkOut: result.checkOut,
+        cabinsCount: result.cabinsCount,
+        hasThirdAdult: result.hasThirdAdult,
+        selectedExtraServices: result.selectedExtraServices || [],
+        guestName: result.guestName
+      });
+
+      if (payment?.confirmationUrl) {
+        window.location.href = payment.confirmationUrl;
+        return;
+      }
+
       setCreatedBooking(result);
       setIsSuccess(true);
-      onBookingSuccess(result);
     } catch (err) {
       console.error('Error submitting booking:', err);
       setValidationErrors([

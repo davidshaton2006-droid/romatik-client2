@@ -1,113 +1,60 @@
 /**
- * Yookassa payment integration
- * https://yookassa.ru/developers/api
+ * Client-side helper for creating a YooKassa payment. The actual YooKassa
+ * API call happens server-side (Cloudflare Worker, see /worker) — the
+ * secret key must never be used in the browser.
  */
 
-export interface YookassaPaymentRequest {
-  amount: number; // Amount in rubles (will be converted to kopecks)
-  description: string;
-  return_url: string;
-  confirmation_type?: 'redirect';
+export interface CreatePaymentParams {
+  bookingId: string;
+  cabinType: 'two_seat' | 'three_seat';
+  checkIn: string;
+  checkOut: string;
+  cabinsCount: number;
+  hasThirdAdult: boolean;
+  selectedExtraServices: string[];
+  guestName: string;
 }
 
-export interface YookassaPayment {
-  id: string;
-  status: 'pending' | 'succeeded' | 'canceled';
-  amount: {
-    value: string;
-    currency: string;
-  };
-  description: string;
-  created_at: string;
-  confirmation?: {
-    confirmation_url: string;
-  };
+export interface CreatePaymentResult {
+  confirmationUrl: string;
+  paymentId: string;
+  amount: number;
 }
 
-export interface PaymentCheckResult {
-  success: boolean;
-  payment?: YookassaPayment;
-  error?: string;
+function getPaymentsApiUrl(): string {
+  const configured = import.meta.env.VITE_PAYMENTS_API_URL as string | undefined;
+  return configured || '';
 }
 
 /**
- * Initialize Yookassa payment
- * In production, this should be called from your backend
+ * Creates a YooKassa payment for a booking and returns the URL to redirect
+ * the guest to for paying via their bank. Returns null if the payments API
+ * isn't configured (payments feature disabled) or the request fails.
  */
-export async function initializeYookassaPayment(
-  request: YookassaPaymentRequest
-): Promise<{ confirmationUrl: string; paymentId: string } | null> {
+export async function createPayment(params: CreatePaymentParams): Promise<CreatePaymentResult | null> {
+  const apiUrl = getPaymentsApiUrl();
+  if (!apiUrl) {
+    console.warn('⚠️ VITE_PAYMENTS_API_URL not configured — payments are disabled.');
+    return null;
+  }
+
   try {
-    // In production, call your backend endpoint instead
-    // This is just a template for the structure
+    const returnUrl = `${window.location.origin}/payment-result?bookingId=${encodeURIComponent(params.bookingId)}`;
 
-    const shopId = import.meta.env.VITE_YOOKASSA_SHOP_ID;
-    const apiKey = import.meta.env.VITE_YOOKASSA_API_KEY;
+    const res = await fetch(`${apiUrl}/api/payments/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...params, returnUrl })
+    });
 
-    if (!shopId || !apiKey) {
-      console.warn('⚠️ Yookassa credentials not configured. Payments will be disabled.');
+    if (!res.ok) {
+      console.error('❌ Payment creation failed:', res.status, await res.text());
       return null;
     }
 
-    // DO NOT call Yookassa API directly from client!
-    // This should be done from your backend for security
-    console.error(
-      '❌ Direct Yookassa API calls from client are not secure. ' +
-      'Please implement /api/payments/create endpoint on your backend.'
-    );
-
-    return null;
+    return res.json();
   } catch (error) {
-    console.error('❌ Failed to initialize Yookassa payment:', error);
+    console.error('❌ Failed to create payment:', error);
     return null;
   }
-}
-
-/**
- * Check payment status
- * Should be called from your backend API endpoint
- */
-export async function checkPaymentStatus(
-  paymentId: string
-): Promise<PaymentCheckResult> {
-  try {
-    const response = await fetch('/api/payments/check', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paymentId })
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to check payment status');
-    }
-
-    const data = await response.json();
-    return { success: true, payment: data };
-  } catch (error) {
-    console.error('❌ Failed to check payment status:', error);
-    return {
-      success: false,
-      error: 'Не удалось проверить статус платежа'
-    };
-  }
-}
-
-/**
- * Format price for Yookassa (amount in rubles)
- */
-export function formatYookassaAmount(rubles: number): string {
-  return rubles.toFixed(2);
-}
-
-/**
- * Validate payment response from Yookassa webhook
- */
-export function validateYookassaWebhook(
-  signature: string,
-  body: string,
-  apiKey: string
-): boolean {
-  // Implementation depends on Yookassa documentation
-  // This is a placeholder
-  return !!signature && !!body && !!apiKey;
 }

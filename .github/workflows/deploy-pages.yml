@@ -28,6 +28,8 @@ jobs:
       - run: npm ci
 
       - run: npx vite build
+        env:
+          VITE_PAYMENTS_API_URL: ${{ vars.VITE_PAYMENTS_API_URL }}
 
       # SPA fallback so direct navigation to routes like /requisites
       # doesn't 404 on GitHub Pages

@@ -1,7 +1,8 @@
-import {StrictMode} from 'react';
+import {StrictMode, ComponentType} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import { RequisitesPage } from './components/RequisitesPage.tsx';
+import { PaymentResultPage } from './components/PaymentResultPage.tsx';
 import './index.css';
 import { initializeFirebaseOnStartup } from './lib/firebase/init';
 
@@ -10,11 +11,11 @@ initializeFirebaseOnStartup().catch(err => {
   console.warn('Firebase init error (app will work offline):', err);
 });
 
-const BUILD_MARKER = 'cf-cache-bust-2';
-const RootComponent = window.location.pathname === '/requisites' ? RequisitesPage : App;
-if (window.location.search.includes('__build')) {
-  console.log(BUILD_MARKER);
-}
+const routes: Record<string, ComponentType> = {
+  '/requisites': RequisitesPage,
+  '/payment-result': PaymentResultPage
+};
+const RootComponent = routes[window.location.pathname] || App;
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
