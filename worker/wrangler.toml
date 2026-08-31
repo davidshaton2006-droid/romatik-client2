@@ -6,8 +6,19 @@ compatibility_date = "2025-01-01"
 FIREBASE_PROJECT_ID = "romantik-client"
 FIREBASE_DATABASE_ID = "(default)"
 ALLOWED_ORIGINS = "https://romantik-baza.ru,http://romantik-baza.ru,https://www.romantik-baza.ru"
+TRAVELLINE_PROPERTY_ID = "68306"
+
+# Backup for the TravelLine webhook — periodically pulls new/changed
+# bookings even if a webhook is missed or never configured.
+[triggers]
+crons = ["*/15 * * * *"]
 
 # Secrets — set these with `wrangler secret put <NAME>`, never commit them:
 #   YOOKASSA_SHOP_ID
 #   YOOKASSA_SECRET_KEY
 #   FIREBASE_SERVICE_ACCOUNT_JSON   (paste the full service account JSON key as one line)
+#   TRAVELLINE_CLIENT_ID
+#   TRAVELLINE_CLIENT_SECRET
+#   TRAVELLINE_WEBHOOK_KEY          (shared secret TravelLine sends back in X-Webhook-Key)
+#   TELEGRAM_BOT_TOKEN              (same bot as the staff app, so notifications land in the same chat)
+#   TELEGRAM_CHAT_ID

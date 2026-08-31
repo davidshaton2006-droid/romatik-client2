@@ -134,6 +134,91 @@ export async function findBookingDocByPaymentId(
 }
 
 /**
+ * Returns, for every already-synced TravelLine booking, its stored status
+ * and modified-timestamp — in a single query, so the sync job can skip
+ * anything unchanged without a per-booking existence check (Workers have a
+ * hard cap on subrequests per invocation).
+ */
+export async function listSyncedTravelLineBookings(
+  env: FirestoreEnv
+): Promise<Map<string, { status: string; modified: string }>> {
+  const token = await getAccessToken(env.FIREBASE_SERVICE_ACCOUNT_JSON);
+
+  const res = await fetch(
+    `https://firestore.googleapis.com/v1/projects/${env.FIREBASE_PROJECT_ID}/databases/${env.FIREBASE_DATABASE_ID}/documents:runQuery`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: 'bookings' }],
+          where: {
+            fieldFilter: {
+              field: { fieldPath: 'created_by' },
+              op: 'EQUAL',
+              value: { stringValue: 'travelline' }
+            }
+          },
+          select: { fields: [{ fieldPath: 'travelline_number' }, { fieldPath: 'travelline_status' }, { fieldPath: 'travelline_modified' }] }
+        }
+      })
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error(`Firestore query failed: ${res.status} ${await res.text()}`);
+  }
+
+  const results = (await res.json()) as Array<{ document?: { fields: Record<string, any> } }>;
+  const map = new Map<string, { status: string; modified: string }>();
+  for (const r of results) {
+    const f = r.document?.fields;
+    const number = f?.travelline_number?.stringValue;
+    if (number) {
+      map.set(number, {
+        status: f?.travelline_status?.stringValue || '',
+        modified: f?.travelline_modified?.stringValue || ''
+      });
+    }
+  }
+  return map;
+}
+
+function toFirestoreValue(value: string | number | boolean): any {
+  if (typeof value === 'string') return { stringValue: value };
+  if (typeof value === 'boolean') return { booleanValue: value };
+  return { doubleValue: value };
+}
+
+/**
+ * Creates or fully overwrites the booking document at bookings/{docId}
+ * with exactly the given fields (upsert — no updateMask means Firestore
+ * replaces the whole document).
+ */
+export async function setBookingDoc(
+  env: FirestoreEnv,
+  docId: string,
+  fields: Record<string, string | number | boolean>
+): Promise<void> {
+  const token = await getAccessToken(env.FIREBASE_SERVICE_ACCOUNT_JSON);
+
+  const firestoreFields: Record<string, any> = {};
+  for (const [key, value] of Object.entries(fields)) {
+    firestoreFields[key] = toFirestoreValue(value);
+  }
+
+  const res = await fetch(`${baseUrl(env)}/bookings/${encodeURIComponent(docId)}`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields: firestoreFields })
+  });
+
+  if (!res.ok) {
+    throw new Error(`Firestore upsert failed: ${res.status} ${await res.text()}`);
+  }
+}
+
+/**
  * Patches specific fields on a booking document. `fields` uses plain JS
  * values for string/number/boolean — converted to Firestore's typed format.
  */

@@ -2,6 +2,7 @@ import { calculateTotalPrice } from './pricing';
 import { calculateServicesTotal } from './services';
 import { createYooKassaPayment, fetchYooKassaPayment } from './yookassa';
 import { findBookingDocByPaymentId, updateBookingFields } from './firestore';
+import { syncTravelLineBookings, verifyTravelLineWebhook } from './travelline';
 
 export interface Env {
   ALLOWED_ORIGINS: string;
@@ -10,6 +11,12 @@ export interface Env {
   FIREBASE_SERVICE_ACCOUNT_JSON: string;
   YOOKASSA_SHOP_ID: string;
   YOOKASSA_SECRET_KEY: string;
+  TRAVELLINE_CLIENT_ID: string;
+  TRAVELLINE_CLIENT_SECRET: string;
+  TRAVELLINE_PROPERTY_ID: string;
+  TRAVELLINE_WEBHOOK_KEY: string;
+  TELEGRAM_BOT_TOKEN: string;
+  TELEGRAM_CHAT_ID: string;
 }
 
 function corsHeaders(env: Env, origin: string | null): Record<string, string> {
@@ -140,6 +147,22 @@ async function handleWebhook(request: Request, env: Env, cors: Record<string, st
   }
 }
 
+async function handleTravelLineWebhook(request: Request, env: Env, cors: Record<string, string>): Promise<Response> {
+  if (!verifyTravelLineWebhook(request, env)) {
+    return json({ error: 'Unauthorized' }, 401, cors);
+  }
+
+  try {
+    // The webhook body isn't trusted for data — it's just a signal to go
+    // check TravelLine's API for what's new. See travelline.ts for why.
+    const result = await syncTravelLineBookings(env);
+    return json({ status: 'ok', ...result }, 200, cors);
+  } catch (err) {
+    console.error('TravelLine sync failed', err);
+    return json({ status: 'error_logged' }, 200, cors);
+  }
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -158,6 +181,22 @@ export default {
       return handleWebhook(request, env, cors);
     }
 
+    if (request.method === 'POST' && url.pathname === '/api/webhooks/travelline') {
+      return handleTravelLineWebhook(request, env, cors);
+    }
+
     return json({ error: 'Not found' }, 404, cors);
+  },
+
+  // Backup for the webhook: runs the same sync on a fixed schedule so a
+  // missed or unconfigured webhook can't silently stop bookings from
+  // reaching the staff app.
+  async scheduled(_event: { cron: string }, env: Env): Promise<void> {
+    try {
+      const result = await syncTravelLineBookings(env);
+      console.log('Scheduled TravelLine sync:', result);
+    } catch (err) {
+      console.error('Scheduled TravelLine sync failed', err);
+    }
   }
 };
