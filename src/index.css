@@ -11,3 +11,18 @@
     font-family: 'Georgia', Georgia, Cambria, "Times New Roman", Times, serif;
   }
 }
+
+/* Стили формы поиска TravelLine (из search_form-ru.html) */
+#block-search,
+#block-search * {
+  box-sizing: border-box;
+}
+
+#block-search {
+  width: 100%;
+}
+
+.tl-container {
+  margin: 0 auto;
+  padding: 0;
+}

@@ -3,11 +3,7 @@ import { Flame, Clock, Check, Calendar, UtensilsCrossed, Waves } from 'lucide-re
 import { FALLBACK_IMAGES } from '../utils/imageUtils';
 import { SmartImage } from './SmartImage';
 
-interface ServicesSectionProps {
-  onOpenBookingModal: () => void;
-}
-
-export const ServicesSection: React.FC<ServicesSectionProps> = ({ onOpenBookingModal }) => {
+export const ServicesSection: React.FC = () => {
   const services = [
     {
       id: 'sauna',
@@ -131,13 +127,14 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ onOpenBookingM
 
               {/* Action Button */}
               <div className="p-6 pt-0">
-                <button
-                  onClick={onOpenBookingModal}
+                <a
+                  href="#"
+                  data-tl-booking-open="true"
                   className="w-full bg-[#2D5A27] hover:bg-[#1E3A1A] text-white font-bold text-xs py-3.5 px-4 rounded-2xl shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-98"
                 >
                   <Calendar className="w-4 h-4" />
                   <span>Заказать услугу</span>
-                </button>
+                </a>
               </div>
 
             </div>

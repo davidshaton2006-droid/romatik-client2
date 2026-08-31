@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
 import { CabinCategoryCard } from '../types';
 import { AMENITIES_DICTIONARY } from '../data/mockCabins';
+import { TRAVELLINE_ROOM_ID } from '../data/travelline';
 import { SmartImage } from './SmartImage';
 import { X, Users, BedDouble, Calendar, CheckCircle2, ChevronLeft, ChevronRight, Bath, ShowerHead, Trees, Sparkles } from 'lucide-react';
 
 interface CabinDetailModalProps {
   categoryCard: CabinCategoryCard | null;
   onClose: () => void;
-  onOpenBooking: (cabinType: 'two_seat' | 'three_seat') => void;
 }
 
 export const CabinDetailModal: React.FC<CabinDetailModalProps> = ({
   categoryCard,
-  onClose,
-  onOpenBooking
+  onClose
 }) => {
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
 
@@ -156,16 +155,16 @@ export const CabinDetailModal: React.FC<CabinDetailModalProps> = ({
               </span>
             </div>
 
-            <button
-              onClick={() => {
-                onClose();
-                onOpenBooking(categoryCard.cabinType);
-              }}
+            <a
+              href="#"
+              data-tl-booking-open="true"
+              data-tl-room={TRAVELLINE_ROOM_ID[categoryCard.cabinType]}
+              onClick={onClose}
               className="w-full sm:w-auto bg-[#2D5A27] hover:bg-[#1E3A1A] text-white font-bold text-xs py-3.5 px-6 rounded-2xl shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
             >
               <Calendar className="w-4 h-4" />
               <span>ЗАБРОНИРОВАТЬ ЭТОТ ДОМИК</span>
-            </button>
+            </a>
           </div>
 
         </div>

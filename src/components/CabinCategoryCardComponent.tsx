@@ -1,20 +1,19 @@
 import React, { useState } from 'react';
 import { CabinCategoryCard } from '../types';
 import { AMENITIES_DICTIONARY } from '../data/mockCabins';
+import { TRAVELLINE_ROOM_ID } from '../data/travelline';
 import { SmartImage } from './SmartImage';
 import { Users, BedDouble, ChevronLeft, ChevronRight, Bath, ShowerHead, Calendar, Sparkles } from 'lucide-react';
 
 interface CabinCategoryCardComponentProps {
   categoryCard: CabinCategoryCard;
   availableCount: number;
-  onOpenBooking: (cabinType: 'two_seat' | 'three_seat') => void;
   onOpenDetailModal: (categoryCard: CabinCategoryCard) => void;
 }
 
 export const CabinCategoryCardComponent: React.FC<CabinCategoryCardComponentProps> = ({
   categoryCard,
   availableCount,
-  onOpenBooking,
   onOpenDetailModal
 }) => {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
@@ -176,13 +175,15 @@ export const CabinCategoryCardComponent: React.FC<CabinCategoryCardComponentProp
               Подробнее и фото
             </button>
 
-            <button
-              onClick={() => onOpenBooking(categoryCard.cabinType)}
+            <a
+              href="#"
+              data-tl-booking-open="true"
+              data-tl-room={TRAVELLINE_ROOM_ID[categoryCard.cabinType]}
               className="w-full bg-[#2D5A27] hover:bg-[#1E3A1A] text-white font-bold text-xs py-3 px-3 rounded-2xl shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
             >
               <Calendar className="w-4 h-4" />
               <span>Забронировать</span>
-            </button>
+            </a>
           </div>
         </div>
 

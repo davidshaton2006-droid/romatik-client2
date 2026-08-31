@@ -8,13 +8,11 @@ import { Calendar, Search, ArrowRight, ShieldCheck, Users } from 'lucide-react';
 
 interface CabinCatalogProps {
   bookings: Booking[];
-  onOpenBooking: (cabinType: 'two_seat' | 'three_seat', checkIn?: string, checkOut?: string) => void;
   onOpenCategoryDetail: (categoryCard: CabinCategoryCard) => void;
 }
 
 export const CabinCatalog: React.FC<CabinCatalogProps> = ({
   bookings,
-  onOpenBooking,
   onOpenCategoryDetail
 }) => {
   const [checkIn, setCheckIn] = useState<string>('2026-08-01');
@@ -25,10 +23,6 @@ export const CabinCatalog: React.FC<CabinCatalogProps> = ({
   const availability = useMemo(() => {
     return calculateAvailability(bookings, checkIn, checkOut);
   }, [bookings, checkIn, checkOut]);
-
-  const handleOpenBookingWithDates = (cabinType: 'two_seat' | 'three_seat') => {
-    onOpenBooking(cabinType, checkIn, checkOut);
-  };
 
   const handleContactBuyout = (channel: 'max' | 'telegram' | 'phone') => {
     if (channel === 'max') {
@@ -143,7 +137,6 @@ export const CabinCatalog: React.FC<CabinCatalogProps> = ({
           <CabinCategoryCardComponent
             categoryCard={CABIN_CATEGORIES[0]}
             availableCount={availability.availableDouble}
-            onOpenBooking={handleOpenBookingWithDates}
             onOpenDetailModal={onOpenCategoryDetail}
           />
 
@@ -151,7 +144,6 @@ export const CabinCatalog: React.FC<CabinCatalogProps> = ({
           <CabinCategoryCardComponent
             categoryCard={CABIN_CATEGORIES[1]}
             availableCount={availability.availableTriple}
-            onOpenBooking={handleOpenBookingWithDates}
             onOpenDetailModal={onOpenCategoryDetail}
           />
 

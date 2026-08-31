@@ -3,10 +3,9 @@ import { Trees, Phone, MapPin, Mail, ShieldCheck, Heart } from 'lucide-react';
 
 interface FooterProps {
   onTabChange?: (tab: 'cabins' | 'territory' | 'services' | 'contacts') => void;
-  onOpenBookingModal: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onTabChange, onOpenBookingModal }) => {
+export const Footer: React.FC<FooterProps> = ({ onTabChange }) => {
   return (
     <footer className="bg-[#1A1A1A] text-white pt-12 pb-28 sm:pb-16 border-t border-[#4A3525]/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
@@ -124,12 +123,13 @@ export const Footer: React.FC<FooterProps> = ({ onTabChange, onOpenBookingModal 
             <p className="text-xs text-white/70">
               Выбирайте удобные даты и бронируйте домик напрямую.
             </p>
-            <button
-              onClick={onOpenBookingModal}
-              className="w-full bg-[#2D5A27] hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-2xl text-xs transition-colors shadow-md cursor-pointer"
+            <a
+              href="#"
+              data-tl-booking-open="true"
+              className="w-full bg-[#2D5A27] hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-2xl text-xs transition-colors shadow-md cursor-pointer text-center block"
             >
               Забронировать домик
-            </button>
+            </a>
           </div>
 
         </div>

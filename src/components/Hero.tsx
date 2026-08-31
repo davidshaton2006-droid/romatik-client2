@@ -1,22 +1,8 @@
-import React, { useState } from 'react';
-import { Calendar, Users, Sparkles, Search, Trees, ShieldCheck, Heart, Bath } from 'lucide-react';
+import React from 'react';
+import { Trees, ShieldCheck, Sparkles } from 'lucide-react';
 import { SmartImage } from './SmartImage';
 
-interface HeroProps {
-  onSearch: (checkIn: string, checkOut: string, guests: number) => void;
-  onOpenBookingModal: () => void;
-}
-
-export const Hero: React.FC<HeroProps> = ({ onSearch, onOpenBookingModal }) => {
-  const [checkIn, setCheckIn] = useState('2026-08-01');
-  const [checkOut, setCheckOut] = useState('2026-08-03');
-  const [guests, setGuests] = useState(2);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSearch(checkIn, checkOut, guests);
-  };
-
+export const Hero: React.FC = () => {
   return (
     <section id="hero" className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
@@ -70,7 +56,7 @@ export const Hero: React.FC<HeroProps> = ({ onSearch, onOpenBookingModal }) => {
 
         </div>
 
-        {/* Right Side: Quick Booking & Search Panel (Natural Tones) */}
+        {/* Right Side: TravelLine Search Form Widget */}
         <div className="lg:col-span-5 flex flex-col justify-between gap-6">
           
           <div className="bg-white rounded-[32px] p-6 sm:p-8 shadow-sm border border-[#4A3525]/10 space-y-6 flex-1 flex flex-col justify-between">
@@ -84,58 +70,12 @@ export const Hero: React.FC<HeroProps> = ({ onSearch, onOpenBookingModal }) => {
                 </span>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-[10px] uppercase font-bold text-[#4A3525]/60 ml-1 block mb-1">
-                      Заезд
-                    </label>
-                    <input
-                      type="date"
-                      value={checkIn}
-                      onChange={(e) => setCheckIn(e.target.value)}
-                      className="w-full p-3 bg-[#FDFBF7] rounded-2xl border border-[#4A3525]/10 text-sm font-semibold text-[#4A3525] focus:outline-hidden focus:ring-2 focus:ring-[#2D5A27]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] uppercase font-bold text-[#4A3525]/60 ml-1 block mb-1">
-                      Выезд
-                    </label>
-                    <input
-                      type="date"
-                      value={checkOut}
-                      onChange={(e) => setCheckOut(e.target.value)}
-                      className="w-full p-3 bg-[#FDFBF7] rounded-2xl border border-[#4A3525]/10 text-sm font-semibold text-[#4A3525] focus:outline-hidden focus:ring-2 focus:ring-[#2D5A27]"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[10px] uppercase font-bold text-[#4A3525]/60 ml-1 block mb-1">
-                    Гости
-                  </label>
-                  <select
-                    value={guests}
-                    onChange={(e) => setGuests(Number(e.target.value))}
-                    className="w-full p-3 bg-[#FDFBF7] rounded-2xl border border-[#4A3525]/10 text-sm font-semibold text-[#4A3525] focus:outline-hidden focus:ring-2 focus:ring-[#2D5A27] cursor-pointer"
-                  >
-                    <option value={1}>1 гость (Отдых соло)</option>
-                    <option value={2}>2 взрослых (Пара)</option>
-                    <option value={4}>3-4 гостей (Семья)</option>
-                    <option value={6}>5-6 гостей (Компания)</option>
-                    <option value={8}>7+ гостей (Свадьба / Группа)</option>
-                  </select>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full py-4 rounded-2xl bg-[#2D5A27] hover:bg-[#1E3A1A] text-white font-bold text-sm tracking-wide shadow-xl shadow-[#2D5A27]/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
-                >
-                  <Search className="w-4 h-4" />
-                  НАЙТИ СВОБОДНЫЕ ДОМИКИ
-                </button>
-              </form>
+              {/* Официальный виджет формы поиска TravelLine.
+                  Контейнер #tl-search-form заполняется автоматически
+                  скриптом, подключённым в index.html <head>. */}
+              <div id="block-search">
+                <div id="tl-search-form" className="tl-container"></div>
+              </div>
             </div>
 
             {/* Quick feature indicators */}

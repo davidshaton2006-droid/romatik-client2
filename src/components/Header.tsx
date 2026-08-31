@@ -2,12 +2,10 @@ import React from 'react';
 import { Trees, Calendar, Phone } from 'lucide-react';
 
 interface HeaderProps {
-  onOpenBookingModal: (cabinType?: 'two_seat' | 'three_seat') => void;
   onBrandClick?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  onOpenBookingModal,
   onBrandClick
 }) => {
   return (
@@ -43,14 +41,15 @@ export const Header: React.FC<HeaderProps> = ({
             <span>8 (918) 444-04-06</span>
           </a>
 
-          {/* Accent Booking Button */}
-          <button
-            onClick={() => onOpenBookingModal()}
+          {/* Accent Booking Button — открывает форму бронирования TravelLine */}
+          <a
+            href="#"
+            data-tl-booking-open="true"
             className="flex items-center gap-1.5 bg-[#2D5A27] hover:bg-[#1E3A1A] text-white px-4 sm:px-5 py-2.5 rounded-2xl font-bold text-xs tracking-wide shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-95 border border-emerald-400/30"
           >
             <Calendar className="w-4 h-4 text-emerald-200" />
             <span>Забронировать</span>
-          </button>
+          </a>
         </div>
 
       </div>

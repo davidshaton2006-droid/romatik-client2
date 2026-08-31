@@ -3,11 +3,7 @@ import { Flame, Bath, UtensilsCrossed, Waves, Smile, Coffee, Trees, Check, Calen
 import { FALLBACK_IMAGES } from '../utils/imageUtils';
 import { SmartImage } from './SmartImage';
 
-interface TerritorySectionProps {
-  onOpenBookingModal: () => void;
-}
-
-export const TerritorySection: React.FC<TerritorySectionProps> = ({ onOpenBookingModal }) => {
+export const TerritorySection: React.FC = () => {
   const items = [
     {
       id: 'pool',
@@ -167,13 +163,14 @@ export const TerritorySection: React.FC<TerritorySectionProps> = ({ onOpenBookin
 
                 {/* Footer Action */}
                 <div className="p-6 pt-0 border-t border-[#4A3525]/10 mt-2">
-                  <button
-                    onClick={onOpenBookingModal}
+                  <a
+                    href="#"
+                    data-tl-booking-open="true"
                     className="w-full bg-[#FDFBF7] border border-[#2D5A27]/20 hover:bg-[#2D5A27] text-[#2D5A27] hover:text-white py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Calendar className="w-3.5 h-3.5" />
                     ЗАБРОНИРОВАТЬ
-                  </button>
+                  </a>
                 </div>
               </div>
             );
