@@ -134,6 +134,57 @@ export async function findBookingDocByPaymentId(
 }
 
 /**
+ * Returns check_in/check_out/cabin_id for every booking whose cabin_id
+ * falls in [min, max] — used to figure out which numbered cabin is free
+ * for a given date range within one house-type's id block. Date-overlap
+ * filtering happens in memory since Firestore can't range-filter two
+ * different fields (cabin_id and dates) in one simple query.
+ */
+export async function findBookingsInCabinRange(
+  env: FirestoreEnv,
+  min: number,
+  max: number
+): Promise<Array<{ cabin_id: number; check_in: string; check_out: string }>> {
+  const token = await getAccessToken(env.FIREBASE_SERVICE_ACCOUNT_JSON);
+
+  const res = await fetch(
+    `https://firestore.googleapis.com/v1/projects/${env.FIREBASE_PROJECT_ID}/databases/${env.FIREBASE_DATABASE_ID}/documents:runQuery`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: 'bookings' }],
+          where: {
+            compositeFilter: {
+              op: 'AND',
+              filters: [
+                { fieldFilter: { field: { fieldPath: 'cabin_id' }, op: 'GREATER_THAN_OR_EQUAL', value: { doubleValue: min } } },
+                { fieldFilter: { field: { fieldPath: 'cabin_id' }, op: 'LESS_THAN_OR_EQUAL', value: { doubleValue: max } } }
+              ]
+            }
+          },
+          select: { fields: [{ fieldPath: 'cabin_id' }, { fieldPath: 'check_in' }, { fieldPath: 'check_out' }] }
+        }
+      })
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error(`Firestore query failed: ${res.status} ${await res.text()}`);
+  }
+
+  const results = (await res.json()) as Array<{ document?: { fields: Record<string, any> } }>;
+  return results
+    .filter((r) => r.document)
+    .map((r) => ({
+      cabin_id: r.document!.fields.cabin_id?.doubleValue ?? r.document!.fields.cabin_id?.integerValue ?? 0,
+      check_in: r.document!.fields.check_in?.stringValue || '',
+      check_out: r.document!.fields.check_out?.stringValue || ''
+    }));
+}
+
+/**
  * Returns, for every already-synced TravelLine booking, its stored status
  * and modified-timestamp — in a single query, so the sync job can skip
  * anything unchanged without a per-booking existence check (Workers have a

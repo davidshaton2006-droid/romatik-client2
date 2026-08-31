@@ -12,7 +12,7 @@
  * the same sync as a backup in case a webhook is missed or never configured.
  */
 
-import { listSyncedTravelLineBookings, setBookingDoc } from './firestore';
+import { findBookingsInCabinRange, listSyncedTravelLineBookings, setBookingDoc } from './firestore';
 
 export interface TravelLineEnv {
   TRAVELLINE_CLIENT_ID: string;
@@ -36,6 +36,56 @@ const ROOM_TYPE_TO_HOUSE_TYPE: Record<string, string> = {
   '412497': 'Двухместный',
   '412498': 'Трехместный'
 };
+
+// The staff app's dashboard matches a booking to a cabin card purely by
+// cabin_id (see HARDCODED_CABINS in its Dashboard.tsx) — TravelLine never
+// gives us a specific physical unit, only a room *type*, so one has to be
+// picked here or these bookings are invisible in that view.
+const HOUSE_TYPE_CABIN_RANGE: Record<string, [number, number]> = {
+  Двухместный: [1, 10],
+  Трехместный: [11, 20]
+};
+
+function datesOverlap(aStart: string, aEnd: string, bStart: string, bEnd: string): boolean {
+  return aStart < bEnd && aEnd > bStart;
+}
+
+/**
+ * Picks a free cabin number for the given house type/dates, checking
+ * against existing bookings in that id range. `cache` holds one Firestore
+ * query's result per house type for the lifetime of a sync run, updated
+ * in place as ids get assigned, so several new bookings of the same type
+ * in one run don't collide with each other.
+ */
+async function assignCabinId(
+  env: TravelLineEnv,
+  houseType: string,
+  checkIn: string,
+  checkOut: string,
+  cache: Map<string, Array<{ cabin_id: number; check_in: string; check_out: string }>>
+): Promise<number> {
+  const range = HOUSE_TYPE_CABIN_RANGE[houseType];
+  if (!range) return 0;
+  const [min, max] = range;
+
+  let existing = cache.get(houseType);
+  if (!existing) {
+    existing = await findBookingsInCabinRange(env, min, max);
+    cache.set(houseType, existing);
+  }
+
+  for (let id = min; id <= max; id++) {
+    const occupied = existing.some((b) => b.cabin_id === id && datesOverlap(checkIn, checkOut, b.check_in, b.check_out));
+    if (!occupied) {
+      existing.push({ cabin_id: id, check_in: checkIn, check_out: checkOut });
+      return id;
+    }
+  }
+
+  // No free slot in range — shouldn't normally happen (would mean this
+  // house type is fully booked for these dates across every channel).
+  return min;
+}
 
 let cachedTlToken: { token: string; expiresAt: number } | null = null;
 
@@ -155,6 +205,7 @@ export async function syncTravelLineBookings(env: TravelLineEnv): Promise<{ proc
 
   let created = 0;
   let skipped = 0;
+  const cabinCache = new Map<string, Array<{ cabin_id: number; check_in: string; check_out: string }>>();
 
   for (const summary of summaries) {
     const docId = `tl_${summary.number}`;
@@ -181,12 +232,18 @@ export async function syncTravelLineBookings(env: TravelLineEnv): Promise<{ proc
     const prepayment = b.guaranteeInfo?.totalPrepaid || 0;
     const houseType = ROOM_TYPE_TO_HOUSE_TYPE[stay.roomType.id] || stay.roomType.name;
     const sourceLabel = b.source?.code || b.source?.type || 'TravelLine';
+    const checkIn = stay.stayDates.arrivalDateTime.slice(0, 10);
+    const checkOut = stay.stayDates.departureDateTime.slice(0, 10);
+
+    // Only occupy a numbered cabin slot for live bookings — a cancelled
+    // one shouldn't hold a spot, and doesn't need to be visible on the grid.
+    const cabinId = b.status === 'Active' ? await assignCabinId(env, houseType, checkIn, checkOut, cabinCache) : 0;
 
     const fields: Record<string, string | number | boolean> = {
-      cabin_id: 0, // TravelLine doesn't allocate a specific physical cabin — staff assigns one
+      cabin_id: cabinId,
       house_type: houseType,
-      check_in: stay.stayDates.arrivalDateTime.slice(0, 10),
-      check_out: stay.stayDates.departureDateTime.slice(0, 10),
+      check_in: checkIn,
+      check_out: checkOut,
       guest_last_name: guestName,
       guest_phone: '',
       prepayment,
@@ -203,20 +260,30 @@ export async function syncTravelLineBookings(env: TravelLineEnv): Promise<{ proc
 
     await setBookingDoc(env, docId, fields);
 
+    // Matches the staff app's own #BACKUP_DATA convention (src/lib/telegram.ts)
+    // so its "restore from Telegram" tool can reconstruct these too — this
+    // tag is NOT what makes bookings show up live; the direct Firestore
+    // write above already does that.
+    const backupData = JSON.stringify({
+      entityType: 'booking',
+      action: b.status === 'Active' ? 'create' : 'delete',
+      data: { id: docId, ...fields, created_at: b.modifiedDateTime }
+    });
+
     if (!alreadySynced && b.status === 'Active') {
       created++;
       await sendTelegramNotification(
         env,
         `🟢 Новая бронь из TravelLine! (Канал: ${sourceLabel})\n` +
-          `🏠 ${houseType} | Гость: ${guestName}\n` +
+          `🏠 ${houseType} №${cabinId} | Гость: ${guestName}\n` +
           `📅 Даты: ${fields.check_in} — ${fields.check_out}\n` +
           `💰 Сумма: ${totalPrice.toLocaleString('ru-RU')} ₽ | Внесено: ${prepayment.toLocaleString('ru-RU')} ₽\n` +
-          `🆔 № ${b.number}`
+          `🆔 № ${b.number}\n\n#BACKUP_DATA: ${backupData}`
       );
     } else if (alreadySynced && b.status === 'Cancelled') {
       await sendTelegramNotification(
         env,
-        `🔴 Отмена брони TravelLine\n🏠 ${houseType} | Гость: ${guestName}\n🆔 № ${b.number}`
+        `🔴 Отмена брони TravelLine\n🏠 ${houseType} | Гость: ${guestName}\n🆔 № ${b.number}\n\n#BACKUP_DATA: ${backupData}`
       );
     }
   }
