@@ -7,21 +7,21 @@ FIREBASE_PROJECT_ID = "romantik-client"
 FIREBASE_DATABASE_ID = "(default)"
 ALLOWED_ORIGINS = "https://romantik-baza.ru,http://romantik-baza.ru,https://www.romantik-baza.ru"
 TRAVELLINE_PROPERTY_ID = "68306"
-# How many nights ahead to cross-check TravelLine's daily-occupancy stats
-# against our own known bookings (see travellineOccupancyCheck.ts). Capped
-# at 31 by TravelLine's API regardless of this value.
-TRAVELLINE_OCCUPANCY_DAYS_AHEAD = "21"
 
-# */15: backup for the TravelLine webhook — periodically pulls new/changed
+# Backup for the TravelLine webhook — periodically pulls new/changed
 # bookings even if a webhook is missed or never configured.
-# 0 8 * * *: once-daily read-only cross-check against TravelLine's PMS
-# Analytics occupancy stats (travellineOccupancyCheck.ts) — Telegram-only,
-# never writes to Firestore. Replaces an earlier attempt that tried to
-# derive real per-room-type availability from the Search API and wrote
-# ~350 incorrect "sold out" placeholder bookings before being rolled back —
-# that endpoint reflects guest-facing sale rules, not physical occupancy.
+#
+# NOTE: two attempts at also syncing real-time room *availability/quota*
+# (not just reservations) were tried and reverted here — see git history.
+# TravelLine's Search API reflects guest-facing sale rules (rate plans,
+# minimum stay, sale horizon), not physical occupancy, and wrote ~350
+# incorrect "sold out" placeholder bookings on its first run. The PMS
+# Analytics API (daily-occupancy) returned a 500 error — the account's
+# "LITE" tariff doesn't include working PMS API access. Getting real
+# availability data would require upgrading the TravelLine plan; until
+# then, only actual reservations (this sync) are tracked.
 [triggers]
-crons = ["*/15 * * * *", "0 8 * * *"]
+crons = ["*/15 * * * *"]
 
 # Secrets — set these with `wrangler secret put <NAME>`, never commit them:
 #   YOOKASSA_SHOP_ID

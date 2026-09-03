@@ -3,7 +3,6 @@ import { calculateServicesTotal } from './services';
 import { createYooKassaPayment, fetchYooKassaPayment } from './yookassa';
 import { findBookingDocByPaymentId, updateBookingFields } from './firestore';
 import { syncTravelLineBookings, verifyTravelLineWebhook } from './travelline';
-import { checkTravelLineOccupancy } from './travellineOccupancyCheck';
 
 export interface Env {
   ALLOWED_ORIGINS: string;
@@ -16,7 +15,6 @@ export interface Env {
   TRAVELLINE_CLIENT_SECRET: string;
   TRAVELLINE_PROPERTY_ID: string;
   TRAVELLINE_WEBHOOK_KEY: string;
-  TRAVELLINE_OCCUPANCY_DAYS_AHEAD?: string;
   TELEGRAM_BOT_TOKEN: string;
   TELEGRAM_CHAT_ID: string;
 }
@@ -165,24 +163,6 @@ async function handleTravelLineWebhook(request: Request, env: Env, cors: Record<
   }
 }
 
-async function handleTravelLineOccupancyCheck(
-  request: Request,
-  env: Env,
-  cors: Record<string, string>
-): Promise<Response> {
-  if (!verifyTravelLineWebhook(request, env)) {
-    return json({ error: 'Unauthorized' }, 401, cors);
-  }
-
-  try {
-    const result = await checkTravelLineOccupancy(env);
-    return json({ status: 'ok', ...result }, 200, cors);
-  } catch (err) {
-    console.error('TravelLine occupancy check failed', err);
-    return json({ status: 'error_logged', error: err instanceof Error ? err.message : String(err) }, 200, cors);
-  }
-}
-
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -205,34 +185,13 @@ export default {
       return handleTravelLineWebhook(request, env, cors);
     }
 
-    // Same auth as the TravelLine webhook (X-Webhook-Key) — lets an admin
-    // (or this session) trigger the occupancy cross-check on demand. See
-    // handleTravelLineOccupancyCheck above.
-    if (request.method === 'POST' && url.pathname === '/api/admin/check-travelline-occupancy') {
-      return handleTravelLineOccupancyCheck(request, env, cors);
-    }
-
     return json({ error: 'Not found' }, 404, cors);
   },
 
-  // */15: backup for the TravelLine webhook — pulls new/changed bookings
-  // even if a webhook is missed or never configured.
-  // Once daily (08:00 UTC): the read-only occupancy cross-check (see
-  // travellineOccupancyCheck.ts) — a separate invocation with its own
-  // subrequest budget, and cheap enough (one API call covers the whole
-  // date range) that daily is plenty; it only ever sends a Telegram
-  // message, never writes to Firestore.
-  async scheduled(event: { cron: string }, env: Env): Promise<void> {
-    if (event.cron === '0 8 * * *') {
-      try {
-        const result = await checkTravelLineOccupancy(env);
-        console.log('Scheduled TravelLine occupancy check:', result);
-      } catch (err) {
-        console.error('Scheduled TravelLine occupancy check failed', err);
-      }
-      return;
-    }
-
+  // Backup for the webhook: runs the same sync on a fixed schedule so a
+  // missed or unconfigured webhook can't silently stop bookings from
+  // reaching the staff app.
+  async scheduled(_event: { cron: string }, env: Env): Promise<void> {
     try {
       const result = await syncTravelLineBookings(env);
       console.log('Scheduled TravelLine sync:', result);
