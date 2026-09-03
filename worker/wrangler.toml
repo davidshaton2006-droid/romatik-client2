@@ -11,13 +11,21 @@ TRAVELLINE_PROPERTY_ID = "68306"
 # sync run (see travellineAvailability.ts) — one API call per night.
 TRAVELLINE_AVAILABILITY_DAYS_AHEAD = "21"
 
-# */15: backup for the TravelLine webhook — periodically pulls new/changed
+# Backup for the TravelLine webhook — periodically pulls new/changed
 # bookings even if a webhook is missed or never configured.
-# 0 * * * *: hourly real-availability/quota check (see travellineAvailability.ts)
-# — kept on its own cron (a separate Worker invocation, own subrequest budget)
-# rather than piggybacking on the booking sync above.
+#
+# NOTE: the hourly "0 * * * *" trigger for the availability/quota check
+# (travellineAvailability.ts) has been deliberately REMOVED for now. Its
+# first real run showed the TravelLine Search API reporting 0 availability
+# for nights that were actually free (confirmed against the TravelLine
+# calendar), because that endpoint reflects guest-facing sale rules (rate
+# plans, minimum stay, sale horizon) — not raw physical room quota. It wrote
+# ~350 incorrect "sold out" placeholder bookings before this was caught and
+# rolled back. Do not re-add this cron (or call the endpoint below other
+# than for one-off testing) until the logic is reworked to use TravelLine's
+# actual inventory/quota data source instead of the Search API.
 [triggers]
-crons = ["*/15 * * * *", "0 * * * *"]
+crons = ["*/15 * * * *"]
 
 # Secrets — set these with `wrangler secret put <NAME>`, never commit them:
 #   YOOKASSA_SHOP_ID
