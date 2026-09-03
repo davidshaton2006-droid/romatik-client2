@@ -3,7 +3,7 @@ import { calculateServicesTotal } from './services';
 import { createYooKassaPayment, fetchYooKassaPayment } from './yookassa';
 import { findBookingDocByPaymentId, updateBookingFields } from './firestore';
 import { syncTravelLineBookings, verifyTravelLineWebhook } from './travelline';
-import { syncTravelLineAvailability } from './travellineAvailability';
+import { checkTravelLineOccupancy } from './travellineOccupancyCheck';
 
 export interface Env {
   ALLOWED_ORIGINS: string;
@@ -16,7 +16,7 @@ export interface Env {
   TRAVELLINE_CLIENT_SECRET: string;
   TRAVELLINE_PROPERTY_ID: string;
   TRAVELLINE_WEBHOOK_KEY: string;
-  TRAVELLINE_AVAILABILITY_DAYS_AHEAD?: string;
+  TRAVELLINE_OCCUPANCY_DAYS_AHEAD?: string;
   TELEGRAM_BOT_TOKEN: string;
   TELEGRAM_CHAT_ID: string;
 }
@@ -157,14 +157,6 @@ async function handleTravelLineWebhook(request: Request, env: Env, cors: Record<
   try {
     // The webhook body isn't trusted for data — it's just a signal to go
     // check TravelLine's API for what's new. See travelline.ts for why.
-    //
-    // Availability/quota is deliberately NOT checked here too: that scan
-    // makes ~25-30 subrequests on its own (one TravelLine API call per
-    // night in the window, plus Firestore queries/writes), and bundling it
-    // with the booking sync's own subrequests in one Worker invocation can
-    // exceed Cloudflare's per-invocation subrequest cap. It runs as its own,
-    // separately-scheduled invocation instead — see scheduled() below and
-    // handleTravelLineAvailabilitySync for on-demand checks.
     const result = await syncTravelLineBookings(env);
     return json({ status: 'ok', ...result }, 200, cors);
   } catch (err) {
@@ -173,7 +165,7 @@ async function handleTravelLineWebhook(request: Request, env: Env, cors: Record<
   }
 }
 
-async function handleTravelLineAvailabilitySync(
+async function handleTravelLineOccupancyCheck(
   request: Request,
   env: Env,
   cors: Record<string, string>
@@ -183,10 +175,10 @@ async function handleTravelLineAvailabilitySync(
   }
 
   try {
-    const result = await syncTravelLineAvailability(env);
+    const result = await checkTravelLineOccupancy(env);
     return json({ status: 'ok', ...result }, 200, cors);
   } catch (err) {
-    console.error('TravelLine availability sync failed', err);
+    console.error('TravelLine occupancy check failed', err);
     return json({ status: 'error_logged', error: err instanceof Error ? err.message : String(err) }, 200, cors);
   }
 }
@@ -214,29 +206,29 @@ export default {
     }
 
     // Same auth as the TravelLine webhook (X-Webhook-Key) — lets an admin
-    // (or this session) trigger just the availability/quota check on demand,
-    // in its own request so it isn't sharing a subrequest budget with
-    // anything else. See handleTravelLineAvailabilitySync above.
-    if (request.method === 'POST' && url.pathname === '/api/admin/sync-travelline-availability') {
-      return handleTravelLineAvailabilitySync(request, env, cors);
+    // (or this session) trigger the occupancy cross-check on demand. See
+    // handleTravelLineOccupancyCheck above.
+    if (request.method === 'POST' && url.pathname === '/api/admin/check-travelline-occupancy') {
+      return handleTravelLineOccupancyCheck(request, env, cors);
     }
 
     return json({ error: 'Not found' }, 404, cors);
   },
 
-  // Backup for the webhook: runs the booking sync on a fixed schedule so a
-  // missed or unconfigured webhook can't silently stop bookings from
-  // reaching the staff app. The availability/quota check runs on its own,
-  // separate hourly schedule (see wrangler.toml's triggers.crons) — each
-  // cron match is its own Worker invocation with its own subrequest budget,
-  // which is why these two syncs are kept apart instead of bundled here.
+  // */15: backup for the TravelLine webhook — pulls new/changed bookings
+  // even if a webhook is missed or never configured.
+  // Once daily (08:00 UTC): the read-only occupancy cross-check (see
+  // travellineOccupancyCheck.ts) — a separate invocation with its own
+  // subrequest budget, and cheap enough (one API call covers the whole
+  // date range) that daily is plenty; it only ever sends a Telegram
+  // message, never writes to Firestore.
   async scheduled(event: { cron: string }, env: Env): Promise<void> {
-    if (event.cron === '0 * * * *') {
+    if (event.cron === '0 8 * * *') {
       try {
-        const result = await syncTravelLineAvailability(env);
-        console.log('Scheduled TravelLine availability sync:', result);
+        const result = await checkTravelLineOccupancy(env);
+        console.log('Scheduled TravelLine occupancy check:', result);
       } catch (err) {
-        console.error('Scheduled TravelLine availability sync failed', err);
+        console.error('Scheduled TravelLine occupancy check failed', err);
       }
       return;
     }
