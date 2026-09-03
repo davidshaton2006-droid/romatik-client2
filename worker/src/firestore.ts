@@ -290,6 +290,54 @@ export async function setBookingDoc(
   }
 }
 
+export interface QuotaWrite {
+  docId: string;
+  /** Present (and no `delete`) => create/overwrite the document with these fields. */
+  fields?: Record<string, string | number | boolean>;
+  /** true => delete the document instead of writing. */
+  delete?: boolean;
+}
+
+/**
+ * Applies many booking-doc writes/deletes in ONE Firestore request via the
+ * `:batchWrite` endpoint, instead of one subrequest per document. Needed by
+ * travellineAvailability.ts: a sync run can touch dozens of quota-block docs
+ * (especially the first run, reconciling weeks of drift at once), and each
+ * as a separate subrequest risks hitting Cloudflare's per-invocation
+ * subrequest cap alongside the ~21 TravelLine API calls the same run makes.
+ */
+export async function batchWriteBookingDocs(env: FirestoreEnv, writes: QuotaWrite[]): Promise<void> {
+  if (writes.length === 0) return;
+
+  const token = await getAccessToken(env.FIREBASE_SERVICE_ACCOUNT_JSON);
+  const docNamePrefix = `projects/${env.FIREBASE_PROJECT_ID}/databases/${env.FIREBASE_DATABASE_ID}/documents/bookings`;
+
+  const body = {
+    writes: writes.map((w) => {
+      const name = `${docNamePrefix}/${w.docId}`;
+      if (w.delete) return { delete: name };
+      const firestoreFields: Record<string, any> = {};
+      for (const [key, value] of Object.entries(w.fields || {})) {
+        firestoreFields[key] = toFirestoreValue(value);
+      }
+      return { update: { name, fields: firestoreFields } };
+    })
+  };
+
+  const res = await fetch(
+    `https://firestore.googleapis.com/v1/projects/${env.FIREBASE_PROJECT_ID}/databases/${env.FIREBASE_DATABASE_ID}/documents:batchWrite`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error(`Firestore batchWrite failed: ${res.status} ${await res.text()}`);
+  }
+}
+
 /**
  * Patches specific fields on a booking document. `fields` uses plain JS
  * values for string/number/boolean — converted to Firestore's typed format.

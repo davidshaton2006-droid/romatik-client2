@@ -24,11 +24,7 @@
  * never silent.
  */
 
-import {
-  deleteBookingDoc,
-  findBookingsInCabinRange,
-  setBookingDoc
-} from './firestore';
+import { batchWriteBookingDocs, findBookingsInCabinRange, type QuotaWrite } from './firestore';
 import {
   HOUSE_TYPE_CABIN_RANGE,
   ROOM_TYPE_TO_HOUSE_TYPE,
@@ -145,6 +141,7 @@ export async function syncTravelLineAvailability(
 
   const today = new Date().toISOString().slice(0, 10);
   const changes: ChangeLogEntry[] = [];
+  const pendingWrites: QuotaWrite[] = [];
 
   for (let i = 0; i < daysAhead; i++) {
     const date = addDays(today, i);
@@ -171,20 +168,23 @@ export async function syncTravelLineAvailability(
         const newCabinIds = pickFreeCabinIds(houseType, date, delta, cached);
         for (const cabinId of newCabinIds) {
           const docId = `tlquota_${date}_${cabinId}`;
-          await setBookingDoc(env, docId, {
-            cabin_id: cabinId,
-            house_type: houseType,
-            check_in: date,
-            check_out: nightEnd,
-            guest_last_name: 'Блокировка канала (TravelLine)',
-            guest_phone: '',
-            prepayment: 0,
-            total_price: 0,
-            remaining_balance: 0,
-            is_fully_paid: false,
-            created_by: QUOTA_SOURCE,
-            created_by_name: 'TravelLine (квота)',
-            comment: 'Автосинхронизация квоты TravelLine — не привязано к конкретной брони'
+          pendingWrites.push({
+            docId,
+            fields: {
+              cabin_id: cabinId,
+              house_type: houseType,
+              check_in: date,
+              check_out: nightEnd,
+              guest_last_name: 'Блокировка канала (TravelLine)',
+              guest_phone: '',
+              prepayment: 0,
+              total_price: 0,
+              remaining_balance: 0,
+              is_fully_paid: false,
+              created_by: QUOTA_SOURCE,
+              created_by_name: 'TravelLine (квота)',
+              comment: 'Автосинхронизация квоты TravelLine — не привязано к конкретной брони'
+            }
           });
           cached.push({ cabin_id: cabinId, check_in: date, check_out: nightEnd, created_by: QUOTA_SOURCE });
         }
@@ -193,12 +193,20 @@ export async function syncTravelLineAvailability(
           .sort((a, b) => b.cabin_id - a.cabin_id)
           .slice(0, -delta);
         for (const block of toRemove) {
-          await deleteBookingDoc(env, `tlquota_${date}_${block.cabin_id}`);
+          pendingWrites.push({ docId: `tlquota_${date}_${block.cabin_id}`, delete: true });
           const idx = cached.indexOf(block);
           if (idx !== -1) cached.splice(idx, 1);
         }
       }
     }
+  }
+
+  // One Firestore request for every write this run needs, regardless of
+  // how many — see batchWriteBookingDocs' docstring for why this matters.
+  // Firestore's batchWrite caps at 500 writes per call; chunk defensively
+  // in case a very first run (reconciling weeks of drift at once) exceeds it.
+  for (let i = 0; i < pendingWrites.length; i += 500) {
+    await batchWriteBookingDocs(env, pendingWrites.slice(i, i + 500));
   }
 
   if (changes.length > 0) {
