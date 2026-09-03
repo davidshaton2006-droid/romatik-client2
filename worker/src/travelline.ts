@@ -26,13 +26,13 @@ export interface TravelLineEnv {
   FIREBASE_DATABASE_ID: string;
 }
 
-const TL_AUTH_URL = 'https://partner.tlintegration.com/auth/token';
-const TL_API_BASE = 'https://partner.tlintegration.com/api';
+export const TL_AUTH_URL = 'https://partner.tlintegration.com/auth/token';
+export const TL_API_BASE = 'https://partner.tlintegration.com/api';
 
 // TravelLine roomType.id -> our house_type label, matching what the staff
 // app already expects (see src/lib/firebase/config.ts's `Двухместный`/
 // `Трехместный` convention).
-const ROOM_TYPE_TO_HOUSE_TYPE: Record<string, string> = {
+export const ROOM_TYPE_TO_HOUSE_TYPE: Record<string, string> = {
   '412497': 'Двухместный',
   '412498': 'Трехместный'
 };
@@ -41,12 +41,22 @@ const ROOM_TYPE_TO_HOUSE_TYPE: Record<string, string> = {
 // cabin_id (see HARDCODED_CABINS in its Dashboard.tsx) — TravelLine never
 // gives us a specific physical unit, only a room *type*, so one has to be
 // picked here or these bookings are invisible in that view.
-const HOUSE_TYPE_CABIN_RANGE: Record<string, [number, number]> = {
+export const HOUSE_TYPE_CABIN_RANGE: Record<string, [number, number]> = {
   Двухместный: [1, 10],
   Трехместный: [11, 20]
 };
 
-function datesOverlap(aStart: string, aEnd: string, bStart: string, bEnd: string): boolean {
+// Real physical cabin counts (business reality) — HOUSE_TYPE_CABIN_RANGE
+// above reserves extra virtual double-cabin slots (8-10) precisely so
+// channel-only bookings without a specific real cabin (like TravelLine
+// reservations, or the quota blocks in travellineAvailability.ts) have
+// somewhere to go without colliding with real double cabins 1-7.
+export const TOTAL_CABINS: Record<string, number> = {
+  Двухместный: 7,
+  Трехместный: 10
+};
+
+export function datesOverlap(aStart: string, aEnd: string, bStart: string, bEnd: string): boolean {
   return aStart < bEnd && aEnd > bStart;
 }
 
@@ -89,7 +99,7 @@ async function assignCabinId(
 
 let cachedTlToken: { token: string; expiresAt: number } | null = null;
 
-async function getTravelLineToken(env: TravelLineEnv): Promise<string> {
+export async function getTravelLineToken(env: TravelLineEnv): Promise<string> {
   if (cachedTlToken && cachedTlToken.expiresAt > Date.now() + 30_000) {
     return cachedTlToken.token;
   }
@@ -177,7 +187,10 @@ async function getBookingDetail(env: TravelLineEnv, token: string, number: strin
   return res.json();
 }
 
-async function sendTelegramNotification(env: TravelLineEnv, text: string): Promise<void> {
+export async function sendTelegramNotification(
+  env: Pick<TravelLineEnv, 'TELEGRAM_BOT_TOKEN' | 'TELEGRAM_CHAT_ID'>,
+  text: string
+): Promise<void> {
   if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID) return;
   try {
     await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/sendMessage`, {

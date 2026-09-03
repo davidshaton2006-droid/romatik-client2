@@ -7,6 +7,9 @@ FIREBASE_PROJECT_ID = "romantik-client"
 FIREBASE_DATABASE_ID = "(default)"
 ALLOWED_ORIGINS = "https://romantik-baza.ru,http://romantik-baza.ru,https://www.romantik-baza.ru"
 TRAVELLINE_PROPERTY_ID = "68306"
+# How many nights ahead to check real TravelLine availability/quota each
+# sync run (see travellineAvailability.ts) — one API call per night.
+TRAVELLINE_AVAILABILITY_DAYS_AHEAD = "21"
 
 # Backup for the TravelLine webhook — periodically pulls new/changed
 # bookings even if a webhook is missed or never configured.

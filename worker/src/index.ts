@@ -3,6 +3,7 @@ import { calculateServicesTotal } from './services';
 import { createYooKassaPayment, fetchYooKassaPayment } from './yookassa';
 import { findBookingDocByPaymentId, updateBookingFields } from './firestore';
 import { syncTravelLineBookings, verifyTravelLineWebhook } from './travelline';
+import { syncTravelLineAvailability } from './travellineAvailability';
 
 export interface Env {
   ALLOWED_ORIGINS: string;
@@ -15,6 +16,7 @@ export interface Env {
   TRAVELLINE_CLIENT_SECRET: string;
   TRAVELLINE_PROPERTY_ID: string;
   TRAVELLINE_WEBHOOK_KEY: string;
+  TRAVELLINE_AVAILABILITY_DAYS_AHEAD?: string;
   TELEGRAM_BOT_TOKEN: string;
   TELEGRAM_CHAT_ID: string;
 }
@@ -156,7 +158,10 @@ async function handleTravelLineWebhook(request: Request, env: Env, cors: Record<
     // The webhook body isn't trusted for data — it's just a signal to go
     // check TravelLine's API for what's new. See travelline.ts for why.
     const result = await syncTravelLineBookings(env);
-    return json({ status: 'ok', ...result }, 200, cors);
+    // A webhook can also mean the property's quota/calendar changed, not
+    // just a new reservation — re-check availability too.
+    const availabilityResult = await syncTravelLineAvailability(env);
+    return json({ status: 'ok', ...result, availability: availabilityResult }, 200, cors);
   } catch (err) {
     console.error('TravelLine sync failed', err);
     return json({ status: 'error_logged' }, 200, cors);
@@ -197,6 +202,18 @@ export default {
       console.log('Scheduled TravelLine sync:', result);
     } catch (err) {
       console.error('Scheduled TravelLine sync failed', err);
+    }
+
+    // The availability/quota check hits TravelLine once per night in the
+    // window (see travellineAvailability.ts) — too costly to run on every
+    // 15-minute cron tick, so it only actually runs once an hour (:00).
+    if (new Date().getUTCMinutes() === 0) {
+      try {
+        const result = await syncTravelLineAvailability(env);
+        console.log('Scheduled TravelLine availability sync:', result);
+      } catch (err) {
+        console.error('Scheduled TravelLine availability sync failed', err);
+      }
     }
   }
 };

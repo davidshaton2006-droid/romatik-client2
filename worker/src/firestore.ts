@@ -144,7 +144,7 @@ export async function findBookingsInCabinRange(
   env: FirestoreEnv,
   min: number,
   max: number
-): Promise<Array<{ cabin_id: number; check_in: string; check_out: string }>> {
+): Promise<Array<{ cabin_id: number; check_in: string; check_out: string; created_by: string }>> {
   const token = await getAccessToken(env.FIREBASE_SERVICE_ACCOUNT_JSON);
 
   const res = await fetch(
@@ -164,7 +164,9 @@ export async function findBookingsInCabinRange(
               ]
             }
           },
-          select: { fields: [{ fieldPath: 'cabin_id' }, { fieldPath: 'check_in' }, { fieldPath: 'check_out' }] }
+          select: {
+            fields: [{ fieldPath: 'cabin_id' }, { fieldPath: 'check_in' }, { fieldPath: 'check_out' }, { fieldPath: 'created_by' }]
+          }
         }
       })
     }
@@ -174,14 +176,33 @@ export async function findBookingsInCabinRange(
     throw new Error(`Firestore query failed: ${res.status} ${await res.text()}`);
   }
 
-  const results = (await res.json()) as Array<{ document?: { fields: Record<string, any> } }>;
+  const results = (await res.json()) as Array<{ document?: { name: string; fields: Record<string, any> } }>;
   return results
     .filter((r) => r.document)
     .map((r) => ({
       cabin_id: r.document!.fields.cabin_id?.doubleValue ?? r.document!.fields.cabin_id?.integerValue ?? 0,
       check_in: r.document!.fields.check_in?.stringValue || '',
-      check_out: r.document!.fields.check_out?.stringValue || ''
+      check_out: r.document!.fields.check_out?.stringValue || '',
+      created_by: r.document!.fields.created_by?.stringValue || ''
     }));
+}
+
+/**
+ * Permanently removes a booking document. Used only for our own synthetic
+ * `travelline_quota` placeholder docs (see travellineAvailability.ts) once
+ * they're no longer needed — never for real bookings.
+ */
+export async function deleteBookingDoc(env: FirestoreEnv, docId: string): Promise<void> {
+  const token = await getAccessToken(env.FIREBASE_SERVICE_ACCOUNT_JSON);
+
+  const res = await fetch(`${baseUrl(env)}/bookings/${encodeURIComponent(docId)}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  if (!res.ok && res.status !== 404) {
+    throw new Error(`Firestore delete failed: ${res.status} ${await res.text()}`);
+  }
 }
 
 /**
