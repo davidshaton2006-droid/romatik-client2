@@ -157,15 +157,36 @@ async function handleTravelLineWebhook(request: Request, env: Env, cors: Record<
   try {
     // The webhook body isn't trusted for data — it's just a signal to go
     // check TravelLine's API for what's new. See travelline.ts for why.
+    //
+    // Availability/quota is deliberately NOT checked here too: that scan
+    // makes ~25-30 subrequests on its own (one TravelLine API call per
+    // night in the window, plus Firestore queries/writes), and bundling it
+    // with the booking sync's own subrequests in one Worker invocation can
+    // exceed Cloudflare's per-invocation subrequest cap. It runs as its own,
+    // separately-scheduled invocation instead — see scheduled() below and
+    // handleTravelLineAvailabilitySync for on-demand checks.
     const result = await syncTravelLineBookings(env);
-    // A webhook can also mean the property's quota/calendar changed, not
-    // just a new reservation — re-check availability too.
-    const availabilityResult = await syncTravelLineAvailability(env);
-    return json({ status: 'ok', ...result, availability: availabilityResult }, 200, cors);
+    return json({ status: 'ok', ...result }, 200, cors);
   } catch (err) {
     console.error('TravelLine sync failed', err);
-    // TODO: remove error message from the response once the sync is verified
-    // working — this is a debug aid, not meant to stay in the response body.
+    return json({ status: 'error_logged' }, 200, cors);
+  }
+}
+
+async function handleTravelLineAvailabilitySync(
+  request: Request,
+  env: Env,
+  cors: Record<string, string>
+): Promise<Response> {
+  if (!verifyTravelLineWebhook(request, env)) {
+    return json({ error: 'Unauthorized' }, 401, cors);
+  }
+
+  try {
+    const result = await syncTravelLineAvailability(env);
+    return json({ status: 'ok', ...result }, 200, cors);
+  } catch (err) {
+    console.error('TravelLine availability sync failed', err);
     return json({ status: 'error_logged', error: err instanceof Error ? err.message : String(err) }, 200, cors);
   }
 }
@@ -192,30 +213,39 @@ export default {
       return handleTravelLineWebhook(request, env, cors);
     }
 
+    // Same auth as the TravelLine webhook (X-Webhook-Key) — lets an admin
+    // (or this session) trigger just the availability/quota check on demand,
+    // in its own request so it isn't sharing a subrequest budget with
+    // anything else. See handleTravelLineAvailabilitySync above.
+    if (request.method === 'POST' && url.pathname === '/api/admin/sync-travelline-availability') {
+      return handleTravelLineAvailabilitySync(request, env, cors);
+    }
+
     return json({ error: 'Not found' }, 404, cors);
   },
 
-  // Backup for the webhook: runs the same sync on a fixed schedule so a
+  // Backup for the webhook: runs the booking sync on a fixed schedule so a
   // missed or unconfigured webhook can't silently stop bookings from
-  // reaching the staff app.
-  async scheduled(_event: { cron: string }, env: Env): Promise<void> {
-    try {
-      const result = await syncTravelLineBookings(env);
-      console.log('Scheduled TravelLine sync:', result);
-    } catch (err) {
-      console.error('Scheduled TravelLine sync failed', err);
-    }
-
-    // The availability/quota check hits TravelLine once per night in the
-    // window (see travellineAvailability.ts) — too costly to run on every
-    // 15-minute cron tick, so it only actually runs once an hour (:00).
-    if (new Date().getUTCMinutes() === 0) {
+  // reaching the staff app. The availability/quota check runs on its own,
+  // separate hourly schedule (see wrangler.toml's triggers.crons) — each
+  // cron match is its own Worker invocation with its own subrequest budget,
+  // which is why these two syncs are kept apart instead of bundled here.
+  async scheduled(event: { cron: string }, env: Env): Promise<void> {
+    if (event.cron === '0 * * * *') {
       try {
         const result = await syncTravelLineAvailability(env);
         console.log('Scheduled TravelLine availability sync:', result);
       } catch (err) {
         console.error('Scheduled TravelLine availability sync failed', err);
       }
+      return;
+    }
+
+    try {
+      const result = await syncTravelLineBookings(env);
+      console.log('Scheduled TravelLine sync:', result);
+    } catch (err) {
+      console.error('Scheduled TravelLine sync failed', err);
     }
   }
 };
