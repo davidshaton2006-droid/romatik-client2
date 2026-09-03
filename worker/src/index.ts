@@ -164,7 +164,9 @@ async function handleTravelLineWebhook(request: Request, env: Env, cors: Record<
     return json({ status: 'ok', ...result, availability: availabilityResult }, 200, cors);
   } catch (err) {
     console.error('TravelLine sync failed', err);
-    return json({ status: 'error_logged' }, 200, cors);
+    // TODO: remove error message from the response once the sync is verified
+    // working — this is a debug aid, not meant to stay in the response body.
+    return json({ status: 'error_logged', error: err instanceof Error ? err.message : String(err) }, 200, cors);
   }
 }
 
